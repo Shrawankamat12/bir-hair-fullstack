@@ -1,0 +1,437 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+/* ---------------------------------------------------------------
+   Design tokens — same brand palette as before, plus one new
+   accent (jade) added for freshness. Exposed two ways:
+   1) @theme  -> generates Tailwind utilities (bg-gold, text-jade…)
+   2) :root   -> kept as plain CSS vars so pages not yet migrated
+                 to Tailwind still render with the same system.
+------------------------------------------------------------------ */
+@theme {
+  --color-brown: #4A2C2A;
+  --color-gold: #C9A227;
+  --color-gold-deep: #A9791C;
+  --color-champagne: #E6C76A;
+  --color-cream: #F8F4ED;
+  --color-beige: #EFE5D8;
+  --color-espresso: #2B1D17;
+  --color-wine: #6E2E2A;
+  --color-jade: #1F5D4E;
+  --color-jade-deep: #133E33;
+  --color-jade-light: #4C8778;
+
+  --font-serif: "Cormorant Garamond", "Times New Roman", serif;
+  --font-sans: "Manrope", -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --shadow-soft: 0 20px 45px -20px rgba(43,29,23,0.35);
+  --shadow-gold: 0 10px 30px -8px rgba(201,162,39,0.45);
+  --shadow-jade: 0 10px 30px -8px rgba(31,93,78,0.4);
+
+  --ease-brand: cubic-bezier(.4,.1,.2,1);
+}
+
+:root{
+  --brown:#4A2C2A; --gold:#C9A227; --gold-deep:#A9791C; --champagne:#E6C76A;
+  --cream:#F8F4ED; --beige:#EFE5D8; --espresso:#2B1D17; --wine:#6E2E2A;
+  --jade:#1F5D4E; --jade-deep:#133E33; --jade-light:#4C8778;
+
+  --gold-grad: linear-gradient(135deg, var(--gold), var(--champagne));
+  --gold-grad-rich: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold) 45%, var(--champagne) 100%);
+  --wine-grad: linear-gradient(135deg, var(--wine), var(--brown));
+  --jade-grad: linear-gradient(135deg, var(--jade-deep) 0%, var(--jade) 55%, var(--jade-light) 100%);
+  --glass-bg: rgba(43,29,23,0.85);
+  --shadow-soft: 0 20px 45px -20px rgba(43,29,23,0.35);
+  --shadow-gold: 0 10px 30px -8px rgba(201,162,39,0.45);
+  --shadow-jade: 0 10px 30px -8px rgba(31,93,78,0.4);
+  --glow-gold: 0 0 0 1px rgba(201,162,39,0.35), 0 18px 40px -14px rgba(201,162,39,0.55);
+  --mesh-light:
+    radial-gradient(circle at 12% 18%, rgba(201,162,39,0.20), transparent 42%),
+    radial-gradient(circle at 88% 12%, rgba(110,46,42,0.10), transparent 40%),
+    radial-gradient(circle at 82% 85%, rgba(230,199,106,0.26), transparent 48%);
+  /* was referenced across the site but never defined — this is why several
+     section backgrounds (Process, Certifications on the homepage) were
+     rendering blank. Now defined, and tuned in with the new jade accent. */
+  --mesh-warm:
+    radial-gradient(circle at 15% 20%, rgba(201,162,39,0.22), transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(31,93,78,0.16), transparent 42%),
+    radial-gradient(circle at 78% 88%, rgba(110,46,42,0.14), transparent 48%);
+
+  --serif: 'Cormorant Garamond', 'Times New Roman', serif;
+  --sans: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --ease: cubic-bezier(.4,.1,.2,1);
+}
+
+@layer base{
+  *{ @apply box-border m-0 p-0; }
+  html{ @apply scroll-smooth; }
+  body{ @apply font-sans bg-cream text-brown antialiased overflow-x-hidden; }
+  a{ @apply text-inherit no-underline; }
+  button{ @apply font-[inherit] cursor-pointer border-0 bg-transparent; }
+  ul{ list-style:none; }
+  img{ @apply max-w-full block; }
+  ::selection{ @apply bg-champagne text-espresso; }
+  h1,h2,h3,h4{ @apply font-serif text-brown font-semibold tracking-wide; }
+  :focus-visible{ @apply outline-[2.5px] outline-gold outline-offset-[3px] rounded; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important; }
+  }
+}
+
+@layer components{
+  .eyebrow{ @apply font-sans text-[0.72rem] tracking-[0.22em] uppercase text-gold font-bold; }
+
+  .container{ @apply max-w-[1320px] mx-auto px-5 md:px-8 lg:px-14; }
+
+  .gold-text{
+    @apply bg-clip-text text-transparent;
+    background-image: var(--gold-grad);
+  }
+  .jade-text{
+    @apply bg-clip-text text-transparent;
+    background-image: var(--jade-grad);
+  }
+
+  .btn{
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-full text-[0.85rem] font-bold tracking-[0.04em] uppercase whitespace-nowrap transition-all duration-300;
+  }
+  .btn-gold{
+    @apply text-espresso relative overflow-hidden;
+    background-image: var(--gold-grad-rich);
+    box-shadow: var(--shadow-gold);
+  }
+  .btn-gold::after{
+    content:'';
+    @apply absolute top-0 bottom-0 -left-[60%] w-2/5;
+    background: linear-gradient(115deg, transparent, rgba(255,255,255,0.55), transparent);
+    transform: skewX(-18deg);
+    transition: left 520ms var(--ease-brand);
+  }
+  .btn-gold:hover::after{ left:130%; }
+  .btn-gold:hover{ @apply -translate-y-[3px]; box-shadow:0 16px 36px -10px rgba(201,162,39,0.6); }
+
+  .btn-jade{
+    @apply text-cream relative overflow-hidden;
+    background-image: var(--jade-grad);
+    box-shadow: var(--shadow-jade);
+  }
+  .btn-jade:hover{ @apply -translate-y-[3px]; box-shadow:0 16px 36px -10px rgba(31,93,78,0.55); }
+
+  .btn-outline{ @apply bg-white/[0.06] border-[1.5px] border-gold text-cream backdrop-blur-[6px]; }
+  .btn-outline.on-light{ @apply text-brown border-brown bg-transparent; }
+  .btn-outline:hover{ @apply -translate-y-[3px] bg-gold/[0.14]; }
+
+  .btn-dark{ @apply bg-espresso text-cream; }
+  .btn-dark:hover{ @apply -translate-y-[3px]; box-shadow: var(--shadow-soft); }
+
+  .btn-sm{ @apply px-5 py-2.5 text-[0.72rem]; }
+  .btn:disabled{ @apply opacity-45 cursor-not-allowed !translate-y-0; }
+
+  /* Shared brand mark — used by Navbar + Footer for a consistent logo treatment */
+  .brand-mark{
+    --bm-size: 44px;
+    width:var(--bm-size); height:var(--bm-size);
+    @apply flex-none rounded-full relative flex items-center justify-center;
+    background-image: var(--gold-grad-rich);
+    box-shadow: var(--glow-gold);
+  }
+  .brand-mark::before{
+    content:'';
+    @apply absolute rounded-full;
+    inset:3px;
+    background: var(--espresso);
+  }
+  .brand-mark-letter{
+    @apply relative z-10 font-serif font-bold text-champagne leading-none;
+    font-size: calc(var(--bm-size) * 0.44);
+  }
+  .brand-mark-ring{
+    @apply absolute rounded-full border border-dashed;
+    inset:-5px;
+    border-color: rgba(201,162,39,0.55);
+    animation: spin 22s linear infinite;
+  }
+
+  .glass{
+    @apply backdrop-blur-[14px] border border-gold/[0.22];
+    background: rgba(248,244,237,0.7);
+  }
+
+  .card{
+    @apply bg-cream rounded-[20px] border border-brown/[0.08] transition-all duration-300;
+    box-shadow: var(--shadow-soft);
+  }
+  .card:hover{
+    @apply -translate-y-1.5;
+    box-shadow: 0 30px 55px -18px rgba(43,29,23,0.4), 0 0 0 1px rgba(201,162,39,0.35);
+  }
+
+  .section{ padding: clamp(56px, 8vw, 110px) 0; }
+.section--tight-top{ padding-top:0; }
+  .section-title{ font-size: clamp(2rem, 3.2vw, 3rem); @apply leading-[1.1]; }
+  .section-lede{ @apply text-brown/[0.68] text-[1.02rem] max-w-[640px] leading-relaxed; }
+
+  .reveal{ @apply opacity-0; transform: translateY(28px); animation: reveal-up 700ms var(--ease-brand) forwards; }
+
+  .price-strike{ @apply text-brown/[0.42] line-through text-[0.85rem]; }
+  .price-now{ @apply text-brown font-extrabold text-[1.08rem]; }
+
+  .badge{ @apply inline-block px-[11px] py-1 rounded-full text-[0.62rem] font-extrabold tracking-[0.08em] uppercase; }
+  .badge-bestseller{ @apply bg-espresso text-champagne; }
+  .badge-new{ @apply text-espresso; background-image: var(--gold-grad); }
+  .badge-trending{ @apply bg-white text-brown border border-gold; }
+  .badge-pick{ @apply bg-beige text-brown border border-brown/[0.15]; }
+  .badge-discount{ @apply bg-brown text-champagne; }
+  .badge-quality{ @apply text-cream; background-image: var(--jade-grad); }
+
+  .visually-hidden{ @apply absolute w-px h-px overflow-hidden; clip:rect(0,0,0,0); }
+
+  @media (max-width: 900px){
+    .section{ padding: 44px 0; }
+  }
+}
+
+@keyframes spin{ to{ transform:rotate(360deg); } }
+@keyframes reveal-up{ to{ opacity:1; transform:translateY(0); } }
+
+/* =================================================================
+   PREMIUM LAYER — additive refinements for the luxury redesign.
+   Nothing above this line was removed; these are new primitives used
+   by the redesigned pages/components (quick view, compare, zoom,
+   sticky filters, trust strip, recently-viewed, FBT, etc).
+================================================================== */
+
+:root{
+  --ink: #201613;
+  --stone: #8a7a6f;
+  --stone-light: #d8cdbf;
+  --hairline: rgba(74,44,42,0.10);
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+  --shadow-1: 0 1px 2px rgba(32,22,19,0.04), 0 2px 8px rgba(32,22,19,0.05);
+  --shadow-2: 0 8px 24px -8px rgba(32,22,19,0.14);
+  --shadow-3: 0 24px 60px -20px rgba(32,22,19,0.28);
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-spring: cubic-bezier(.34,1.56,.64,1);
+}
+
+/* Toned-down, more restrained shine on gold buttons — premium rather than flashy */
+.btn-gold::after{ display:none; }
+.btn{ transition: transform 260ms var(--ease-out), box-shadow 260ms var(--ease-out), background 260ms var(--ease-out), border-color 260ms var(--ease-out), color 260ms var(--ease-out); }
+.btn-gold:hover{ transform: translateY(-2px); box-shadow: 0 14px 30px -10px rgba(201,162,39,0.55); }
+.btn-jade:hover{ transform: translateY(-2px); }
+.btn-outline:hover{ transform: translateY(-2px); }
+.btn-dark:hover{ transform: translateY(-2px); }
+
+/* quieter logo mark, no strobe */
+.nav-logo-mark{ animation:none !important; }
+
+/* -----------------------------------------------------------------
+   Section utilities
+----------------------------------------------------------------- */
+.section-head{ display:flex; flex-direction:column; gap:8px; margin-bottom:clamp(28px,4vw,44px); }
+.section-head.row{ flex-direction:row; align-items:flex-end; justify-content:space-between; gap:20px; }
+.section-head.center{ align-items:center; text-align:center; }
+
+.eyebrow-dot{ display:inline-flex; align-items:center; gap:8px; }
+.eyebrow-dot::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--gold-grad); flex:none; }
+
+/* -----------------------------------------------------------------
+   Trust strip — reusable row of assurance points (PDP, cart, checkout)
+----------------------------------------------------------------- */
+.trust-strip{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:14px;
+}
+.trust-strip-item{
+  display:flex; align-items:center; gap:10px;
+  padding:14px 16px; border-radius:var(--r-md);
+  background:var(--cream); border:1px solid var(--hairline);
+  font-size:0.78rem; line-height:1.25; color:var(--brown);
+  transition: border-color 220ms, box-shadow 220ms, transform 220ms;
+}
+.trust-strip-item:hover{ border-color:rgba(201,162,39,0.4); box-shadow:var(--shadow-1); transform:translateY(-1px); }
+.trust-strip-item svg{ flex:none; color:var(--gold-deep); }
+.trust-strip-item strong{ display:block; font-weight:700; }
+.trust-strip-item span{ opacity:0.68; }
+
+/* -----------------------------------------------------------------
+   Sticky filter toolbar (Shop/PLP)
+----------------------------------------------------------------- */
+.sticky-toolbar{
+  position:sticky; top:var(--navbar-h, 0px); z-index:20;
+  background:rgba(248,244,237,0.92);
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--hairline);
+}
+
+/* -----------------------------------------------------------------
+   Quick View modal + Compare drawer — shared overlay chrome
+----------------------------------------------------------------- */
+.overlay-backdrop{
+  position:fixed; inset:0; z-index:300;
+  background:rgba(32,22,19,0.55);
+  backdrop-filter: blur(3px);
+  opacity:0; visibility:hidden;
+  transition: opacity 280ms var(--ease-out), visibility 280ms;
+}
+.overlay-backdrop.open{ opacity:1; visibility:visible; }
+
+.qv-modal{
+  position:fixed; z-index:301;
+  top:50%; left:50%;
+  width:min(920px, 92vw);
+  max-height:88vh; overflow:auto;
+  background:var(--cream);
+  border-radius:var(--r-lg);
+  box-shadow:var(--shadow-3);
+  transform: translate(-50%,-46%) scale(0.96);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition: transform 320ms var(--ease-spring), opacity 240ms var(--ease-out), visibility 320ms;
+}
+.qv-modal.open{ transform:translate(-50%,-50%) scale(1); opacity:1; visibility:visible; pointer-events:auto; }
+.qv-close{
+  position:absolute; top:16px; right:16px; z-index:2;
+  width:36px; height:36px; border-radius:50%;
+  background:rgba(255,255,255,0.85); color:var(--brown);
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.05rem; box-shadow:var(--shadow-1);
+  transition: transform 200ms var(--ease-out), background 200ms;
+}
+.qv-close:hover{ transform:rotate(90deg); background:#fff; }
+.qv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:0; }
+.qv-media{ position:relative; }
+.qv-body{ padding:clamp(24px,3vw,44px); display:flex; flex-direction:column; gap:14px; }
+.qv-variant-label{ font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:700; color:var(--stone); }
+.qv-actions{ display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; }
+@media (max-width:760px){ .qv-grid{ grid-template-columns:1fr; } .qv-modal{ max-height:92vh; } }
+
+/* Compare tray (floating bottom bar) */
+.compare-tray{
+  position:fixed; left:50%; bottom:22px; z-index:250;
+  transform: translate(-50%, 140%);
+  display:flex; align-items:center; gap:16px;
+  padding:12px 14px 12px 20px;
+  background:var(--espresso); color:var(--cream);
+  border-radius:999px; box-shadow:var(--shadow-3);
+  transition: transform 380ms var(--ease-spring);
+  max-width:94vw;
+}
+.compare-tray.open{ transform: translate(-50%, 0); }
+.compare-tray-thumbs{ display:flex; gap:8px; }
+.compare-tray-thumb{ width:38px; height:38px; border-radius:10px; overflow:hidden; border:1.5px solid rgba(201,162,39,0.5); position:relative; flex:none; }
+.compare-tray-thumb img{ width:100%; height:100%; object-fit:cover; }
+.compare-tray-thumb button{ position:absolute; inset:0; background:rgba(32,22,19,0.55); color:var(--cream); opacity:0; font-size:0.75rem; transition:opacity 160ms; }
+.compare-tray-thumb:hover button{ opacity:1; }
+.compare-tray-label{ font-size:0.8rem; white-space:nowrap; }
+.compare-tray-actions{ display:flex; gap:8px; align-items:center; }
+
+.compare-drawer{
+  position:fixed; inset:0; z-index:302;
+  background:var(--cream);
+  transform: translateY(100%);
+  transition: transform 380ms var(--ease-spring);
+  overflow-y:auto;
+}
+.compare-drawer.open{ transform:translateY(0); }
+.compare-drawer-head{ position:sticky; top:0; background:var(--cream); border-bottom:1px solid var(--hairline); z-index:2; }
+.compare-table-wrap{ overflow-x:auto; }
+.compare-table{ width:100%; border-collapse:collapse; min-width:640px; }
+.compare-table th, .compare-table td{ text-align:left; padding:14px 16px; border-bottom:1px solid var(--hairline); vertical-align:top; }
+.compare-table th{ width:160px; color:var(--stone); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; font-weight:700; }
+.compare-col-head{ min-width:200px; }
+.compare-remove{ font-size:0.72rem; color:var(--wine); font-weight:700; margin-top:6px; }
+
+/* -----------------------------------------------------------------
+   Image zoom / magnifier (PDP gallery)
+----------------------------------------------------------------- */
+.zoom-frame{ position:relative; overflow:hidden; cursor:zoom-in; border-radius:22px; }
+.zoom-frame.active{ cursor:crosshair; }
+.zoom-lens{
+  position:absolute; pointer-events:none; z-index:3;
+  border:2px solid rgba(255,255,255,0.85);
+  background:rgba(255,255,255,0.08);
+  box-shadow:0 0 0 1px rgba(32,22,19,0.15);
+  border-radius:10px;
+}
+.zoom-pane{
+  position:absolute; z-index:30; top:0; left:calc(100% + 20px);
+  width:420px; height:420px;
+  border-radius:20px; overflow:hidden;
+  box-shadow:var(--shadow-3);
+  background:var(--beige) no-repeat;
+  display:none;
+  border:1px solid var(--hairline);
+}
+.zoom-frame.active ~ .zoom-pane, .zoom-pane.show{ display:block; }
+@media (max-width:1240px){ .zoom-pane{ display:none !important; } }
+
+/* -----------------------------------------------------------------
+   Recently viewed / Frequently bought together
+----------------------------------------------------------------- */
+.fbt-row{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.fbt-card{ width:120px; text-align:center; }
+.fbt-plus{ font-size:1.4rem; color:var(--stone); font-weight:300; }
+.fbt-total{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  margin-top:18px; padding-top:18px; border-top:1px dashed var(--hairline); flex-wrap:wrap;
+}
+.fbt-checklist{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+.fbt-checklist label{ display:flex; align-items:center; gap:10px; font-size:0.86rem; }
+.fbt-checklist input{ accent-color:var(--gold); width:16px; height:16px; }
+
+/* -----------------------------------------------------------------
+   Product card additions: compare checkbox
+----------------------------------------------------------------- */
+.pcard-compare{
+  position:absolute; bottom:12px; left:12px; z-index:2;
+  display:flex; align-items:center; gap:6px;
+  background:rgba(248,244,237,0.92); color:var(--brown);
+  padding:6px 10px 6px 8px; border-radius:999px;
+  font-size:0.68rem; font-weight:700; letter-spacing:0.02em;
+  opacity:0; transform:translateY(6px);
+  transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
+}
+.pcard-media:hover .pcard-compare, .pcard-compare.checked{ opacity:1; transform:translateY(0); }
+.pcard-compare input{ accent-color:var(--gold); width:13px; height:13px; }
+
+/* -----------------------------------------------------------------
+   Empty state polish
+----------------------------------------------------------------- */
+.empty-state-icon{
+  width:64px; height:64px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--beige); color:var(--gold-deep);
+  margin:0 auto 18px;
+}
+
+@media (max-width:640px){
+  .trust-strip{ grid-template-columns:repeat(2,1fr); }
+  .compare-tray{ left:12px; right:12px; transform:translateY(140%); width:auto; max-width:none; }
+  .compare-tray.open{ transform:translateY(0); }
+}
+
+.search-page-form{ margin-bottom:32px; }
+.search-page-input-wrap{
+  display:flex; align-items:center; gap:10px;
+  max-width:520px; padding:6px 8px 6px 18px;
+  border-radius:999px; border:1.5px solid rgba(74,44,42,0.18);
+  background:var(--cream);
+  color:rgba(74,44,42,0.4);
+  transition: border-color 200ms;
+}
+.search-page-input-wrap:focus-within{ border-color:var(--gold); }
+.search-page-input-wrap input{
+  flex:1; border:none; background:none; font:inherit; font-size:0.95rem; color:var(--brown);
+  padding:8px 0;
+}
+.search-page-input-wrap input:focus{ outline:none; }
+
+.shop-empty{
+  text-align:center; padding:80px 20px; display:flex; flex-direction:column; gap:14px; align-items:center;
+  color:rgba(74,44,42,0.65); max-width:440px; margin:0 auto;
+}
+.shop-empty h3{ font-size:1.3rem; color:var(--brown); }

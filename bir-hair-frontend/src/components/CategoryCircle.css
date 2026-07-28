@@ -1,0 +1,32 @@
+.catcircle-wrap{
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  text-align:center;
+}
+.catcircle{
+  width:clamp(96px,11vw,128px);
+  height:clamp(96px,11vw,128px);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  border:3px solid transparent;
+  background-clip: padding-box;
+  box-shadow: 0 0 0 3px var(--gold), 0 0 0 7px rgba(201,162,39,0.16), var(--shadow-soft);
+  transition: transform 200ms var(--ease), box-shadow 200ms var(--ease);
+  will-change: transform;
+}
+.catcircle:hover{ box-shadow: 0 0 0 3px var(--champagne), 0 0 0 9px rgba(201,162,39,0.28), 0 20px 40px -12px rgba(43,29,23,0.4); }
+.catcircle.has-img{ background-size:cover; background-position:center; }
+.tone-gold{ background: linear-gradient(140deg,var(--gold),var(--champagne)); }
+.tone-brown{ background: linear-gradient(140deg,var(--brown),#6b4038); }
+.tone-beige{ background: linear-gradient(140deg,var(--beige),#dcc9a8); }
+.tone-espresso{ background: linear-gradient(140deg,var(--espresso),#4a332a); }
+.tone-cream{ background: linear-gradient(140deg,var(--cream),#e7dcc8); }
+
+.catcircle-glyph{
+  font-family: var(--serif); font-size:2rem; font-weight:700; color:rgba(255,255,255,0.85);
+}
+.tone-cream .catcircle-glyph, .tone-beige .catcircle-glyph{ color:rgba(74,44,42,0.55); }
+
+.catcircle-label{
+  font-size:0.74rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:var(--brown);
+  max-width:120px;
+}

@@ -1,0 +1,67 @@
+.login-screen {
+  min-height: 100vh; display: flex; align-items: stretch; justify-content: center;
+  background: var(--bg); font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.login-panel {
+  flex: 1; display: none; position: relative; background: linear-gradient(160deg, #3a1246 0%, #1a0a20 100%);
+  color: #fff; padding: 56px; overflow: hidden;
+}
+.login-panel::before {
+  content: ''; position: absolute; width: 480px; height: 480px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(224,79,176,0.35) 0%, rgba(224,79,176,0) 70%);
+  top: -120px; right: -140px;
+}
+.login-panel::after {
+  content: ''; position: absolute; width: 380px; height: 380px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(92,33,121,0.5) 0%, rgba(92,33,121,0) 70%);
+  bottom: -100px; left: -100px;
+}
+.login-panel-inner { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+.login-panel-brand { display: flex; align-items: center; gap: 12px; }
+.login-panel-brand img { width: 46px; height: 46px; object-fit: contain; }
+.login-panel-brand span { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 17px; }
+.login-panel-copy h2 { font-family: 'Poppins', sans-serif; font-size: 30px; line-height: 1.3; font-weight: 700; margin: 0 0 12px; max-width: 380px; }
+.login-panel-copy p { font-size: 14.5px; color: rgba(255,255,255,.65); max-width: 360px; line-height: 1.6; margin: 0; }
+.login-panel-foot { font-size: 12.5px; color: rgba(255,255,255,.4); }
+
+.login-form-side { flex: 1; max-width: 480px; display: flex; align-items: center; justify-content: center; padding: 32px; }
+.login-box { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 6px; }
+.login-box-logo { display: flex; justify-content: center; margin-bottom: 18px; }
+.login-box-logo img { width: 64px; height: 64px; object-fit: contain; }
+.login-box h1 { text-align: center; font-size: 21px; font-weight: 700; margin: 0 0 4px; }
+.login-box .subtitle { text-align: center; font-size: 13.5px; color: var(--text-muted); margin: 0 0 22px; }
+
+.login-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.login-field label { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.login-input-wrap { position: relative; display: flex; align-items: center; }
+.login-input-wrap svg.field-icon { position: absolute; left: 13px; width: 17px; height: 17px; color: var(--text-faint); pointer-events: none; }
+.login-box input {
+  width: 100%; padding: 12px 14px 12px 40px; border: 1px solid var(--border); border-radius: 10px;
+  font-size: 14px; outline: none; transition: border-color .15s ease, box-shadow .15s ease; background: var(--surface-muted);
+  font-family: inherit;
+}
+.login-box input:focus { border-color: var(--brand-magenta); box-shadow: 0 0 0 3px rgba(168,59,171,0.12); background: #fff; }
+.login-toggle-visibility {
+  position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: var(--text-faint);
+  padding: 6px; display: flex; align-items: center; justify-content: center;
+}
+.login-toggle-visibility svg { width: 17px; height: 17px; }
+
+.login-row-between { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 18px; font-size: 12.5px; }
+.login-remember { display: flex; align-items: center; gap: 7px; color: var(--text-muted); }
+.login-remember input { width: 14px; height: 14px; accent-color: var(--brand-magenta); }
+.login-forgot { color: var(--brand-magenta); text-decoration: none; font-weight: 600; }
+
+.login-error { color: var(--danger); font-size: 12.5px; background: #fdecee; border: 1px solid #f7d3d7; padding: 9px 12px; border-radius: 8px; margin: 0 0 14px; }
+
+.login-box button[type="submit"] {
+  padding: 12px; border: none; border-radius: 10px; background: var(--brand-gradient); color: #fff; font-weight: 600;
+  font-size: 14.5px; cursor: pointer; box-shadow: 0 6px 16px rgba(168, 59, 171, 0.3); transition: transform .15s ease, box-shadow .15s ease;
+}
+.login-box button[type="submit"]:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(168, 59, 171, 0.38); }
+.login-box button[type="submit"]:active { transform: translateY(0); }
+
+.login-footnote { text-align: center; font-size: 12px; color: var(--text-faint); margin-top: 22px; }
+
+@media (min-width: 960px) { .login-panel { display: flex; } }
