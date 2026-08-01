@@ -11,6 +11,9 @@ export function normalizeProduct(p) {
     name: p.name,
     category: p.category?.slug || p.category,
     categoryName: p.category?.name,
+    subcategory: p.subcategory,
+    collectionRef: p.collectionRef,
+    brand: p.brand,
     texture: p.texture,
     hairType: p.hairType,
     length: p.length,
@@ -26,14 +29,72 @@ export function normalizeProduct(p) {
     sku: p.sku,
     stock: p.stock,
     description: p.description,
-    image: p.images?.[0],
-    images: p.images || [],
+    specifications: p.specifications,
+    careInstructions: p.careInstructions,
+    shippingInfo: p.shippingInfo,
+    returnPolicy: p.returnPolicy,
+    image: p.images?.[0] || p.gallery?.[0]?.url,
+    images: p.images?.length ? p.images : (p.gallery || []).map((g) => (typeof g === 'string' ? g : g.url)).filter(Boolean),
+    gallery: p.gallery || [],
+    video: p.video || '',
+    hasVariants: !!p.hasVariants,
+    variants: p.variants || [],
+    // --- Admin-controlled homepage / merchandising flags ---
+    featured: !!p.featured,
+    newArrival: !!p.newArrival,
+    trending: !!p.trending,
+    premium: !!p.premium,
+    bestSeller: !!p.bestSeller,
+    flashSale: !!p.flashSale,
+    flashSaleEndsAt: p.flashSaleEndsAt,
+    recommended: !!p.recommended,
+    saleBadgeText: p.saleBadgeText || '',
+    tags: p.tags || [],
+    visibility: p.visibility || 'visible',
   };
 }
 
 export function normalizeCategory(c) {
   if (!c) return c;
-  return { id: c.slug, _id: c._id, name: c.name, tone: c.tone, tag: c.tag, img: c.image };
+  return {
+    id: c.slug,
+    _id: c._id,
+    slug: c.slug,
+    name: c.name,
+    tone: c.tone,
+    tag: c.tag,
+    image: c.image,
+    img: c.image, // kept for any older code still reading `img`
+    featured: !!c.featured,
+  };
+}
+
+export function normalizeSubCategory(s) {
+  if (!s) return s;
+  return { id: s._id, _id: s._id, name: s.name, slug: s.slug, categoryId: s.categoryId?._id || s.categoryId, image: s.image };
+}
+
+export function normalizeBrand(b) {
+  if (!b) return b;
+  return { id: b._id, _id: b._id, name: b.name, logo: b.logo, featured: !!b.featured };
+}
+
+export function normalizeCollection(c) {
+  if (!c) return c;
+  return { id: c._id, _id: c._id, name: c.name, slug: c.slug, image: c.image, description: c.description };
+}
+
+export function normalizeAttribute(a) {
+  if (!a) return a;
+  return { id: a._id, _id: a._id, type: a.type, name: a.name, value: a.value, colorSwatch: a.colorSwatch };
+}
+
+// SiteContent's schema field names already match what Home.jsx/Footer.jsx consume directly —
+// this just strips Mongo metadata so components don't need to know about _id/__v/timestamps.
+export function normalizeSiteContent(sc) {
+  if (!sc) return sc;
+  const { _id, __v, createdAt, updatedAt, ...rest } = sc;
+  return rest;
 }
 
 export function normalizeBlog(b) {

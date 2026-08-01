@@ -11,10 +11,31 @@ export const productsApi = {
   list: (query) => api.get('/products', query),
   get: (idOrSlug) => api.get(`/products/${idOrSlug}`),
   byBadge: (badge) => api.get(`/products/badge/${encodeURIComponent(badge)}`),
+  byFlag: (flag, limit) => api.get(`/products/flag/${flag}`, limit ? { limit } : undefined),
 };
 
 export const categoriesApi = {
   list: () => api.get('/categories'),
+};
+
+export const subcategoriesApi = {
+  list: (categoryId) => api.get('/subcategories', categoryId ? { categoryId } : undefined),
+};
+
+export const brandsApi = {
+  list: () => api.get('/brands'),
+};
+
+export const collectionsApi = {
+  list: () => api.get('/collections'),
+};
+
+export const attributesApi = {
+  list: (type) => api.get('/attributes', type ? { type } : undefined),
+};
+
+export const siteContentApi = {
+  get: () => api.get('/site-content'),
 };
 
 export const blogsApi = {

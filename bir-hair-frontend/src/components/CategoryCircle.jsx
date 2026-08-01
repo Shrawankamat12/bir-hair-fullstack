@@ -1,9 +1,11 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { resolveImageUrl } from '../lib/api';
 import './CategoryCircle.css';
 
 export default function CategoryCircle({ cat }) {
   const ref = useRef(null);
+  const imageUrl = resolveImageUrl(cat.image);
 
   function onMove(e) {
     const el = ref.current;
@@ -18,15 +20,21 @@ export default function CategoryCircle({ cat }) {
   }
 
   return (
-    <Link to="/shop" className="catcircle-wrap">
+    <Link to={`/shop?category=${cat.slug}`} className="catcircle-wrap">
       <div
         ref={ref}
-        className={`catcircle tone-${cat.tone} ${cat.img ? 'has-img' : ''}`}
-        style={cat.img ? { backgroundImage: `linear-gradient(180deg, rgba(43,29,23,0.02), rgba(74,44,42,0.38)), url(${cat.img})` } : undefined}
+        className={`catcircle tone-${cat.tone || 'gold'} ${imageUrl ? 'has-img' : ''}`}
+        style={
+          imageUrl
+            ? {
+                backgroundImage: `linear-gradient(180deg, rgba(43,29,23,0.02), rgba(74,44,42,0.38)), url(${imageUrl})`,
+              }
+            : undefined
+        }
         onMouseMove={onMove}
         onMouseLeave={onLeave}
       >
-        {!cat.img && <span className="catcircle-glyph">{cat.name.charAt(0)}</span>}
+        {!imageUrl && <span className="catcircle-glyph">{cat.name.charAt(0)}</span>}
       </div>
       <span className="catcircle-label">{cat.name}</span>
     </Link>

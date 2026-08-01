@@ -43,9 +43,8 @@ exports.getProductsByBadge = asyncHandler(async (req, res) => {
   res.json({ success: true, data: products });
 });
 
-// GET /api/v1/products/flag/:flag?limit=12  (newArrival | trending | premium | bestSeller | flashSale | recommended | featured)
+// GET /api/v1/products/flag/:flag  (featured | newArrival | trending | premium | bestSeller | flashSale | recommended)
 exports.getProductsByFlag = asyncHandler(async (req, res) => {
-  const limit = req.query.limit ? Number(req.query.limit) : 12;
-  const products = await productService.getByFlag(req.params.flag, limit);
+  const products = await productService.getByFlag(req.params.flag, Number(req.query.limit) || 12);
   res.json({ success: true, data: products });
 });

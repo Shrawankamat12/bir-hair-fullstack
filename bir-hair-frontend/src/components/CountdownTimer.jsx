@@ -9,8 +9,10 @@ function getRemaining(target) {
   };
 }
 
-export default function CountdownTimer({ hours = 8 }) {
-  const [target] = useState(() => Date.now() + hours * 3.6e6);
+export default function CountdownTimer({ hours = 8, endsAt }) {
+  // If the admin has set a real Flash Sale end date/time on the product, count down to that.
+  // Otherwise fall back to the original rolling "N hours from now" behaviour.
+  const [target] = useState(() => (endsAt ? new Date(endsAt).getTime() : Date.now() + hours * 3.6e6));
   const [t, setT] = useState(() => getRemaining(target));
 
   useEffect(() => {

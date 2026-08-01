@@ -57,13 +57,7 @@ const productSchema = new mongoose.Schema({
 
   featured: { type: Boolean, default: false },
 
-  hasVariants: { type: Boolean, default: false },
-  variants: [{
-    length: String, colour: String, texture: String, weight: String, density: String,
-    sku: String, price: Number, stock: { type: Number, default: 0 },
-  }],
-
-  // --- Home-page shelves + per-product visibility control (additive) ---
+  // --- Homepage / merchandising flags (drive Home page shelves from the admin panel) ---
   newArrival: { type: Boolean, default: false },
   trending: { type: Boolean, default: false },
   premium: { type: Boolean, default: false },
@@ -71,9 +65,15 @@ const productSchema = new mongoose.Schema({
   flashSale: { type: Boolean, default: false },
   flashSaleEndsAt: { type: Date },
   recommended: { type: Boolean, default: false },
-  saleBadgeText: { type: String },
+  saleBadgeText: { type: String },        // e.g. "-20% Today", overrides auto badge when set
   tags: [{ type: String }],
   visibility: { type: String, enum: ['visible', 'hidden'], default: 'visible' },
+
+  hasVariants: { type: Boolean, default: false },
+  variants: [{
+    length: String, colour: String, texture: String, weight: String, density: String,
+    sku: String, price: Number, stock: { type: Number, default: 0 },
+  }],
 }, { timestamps: true });
 
 productSchema.index({ name: 'text', description: 'text' });
@@ -83,7 +83,7 @@ productSchema.index({ category: 1, isActive: 1 });
 productSchema.index({ badge: 1, isActive: 1 });
 productSchema.index({ isActive: 1, stock: 1 });
 productSchema.index({ createdAt: -1 });
-// Home-page shelf queries: isActive + visibility + a specific flag (see product.service#getByFlag).
+productSchema.index({ isActive: 1, visibility: 1, featured: 1 });
 productSchema.index({ isActive: 1, visibility: 1, newArrival: 1 });
 productSchema.index({ isActive: 1, visibility: 1, trending: 1 });
 productSchema.index({ isActive: 1, visibility: 1, premium: 1 });

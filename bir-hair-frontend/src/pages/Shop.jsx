@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import ProductCard from '../components/ProductCard';
 import FilterAccordion from '../components/FilterAccordion';
@@ -6,31 +7,38 @@ import QuickView from '../components/QuickView';
 import RecentlyViewed from '../components/RecentlyViewed';
 import { ProductGridSkeleton } from '../components/Skeletons';
 import { ErrorState, EmptyState } from '../components/StateBlocks';
-import { useProducts } from '../hooks/useStoreData';
+import {
+  useProducts, useCategories, useSubCategories, useBrands, useCollections, useAttributes,
+} from '../hooks/useStoreData';
 import { useRecentlyViewedList } from '../hooks/useRecentlyViewed';
 import './Shop.css';
 
-const CATS = [
-  { id: 'extensions', label: 'Extensions' },
-  { id: 'wigs', label: 'Wigs' },
-  { id: 'closures', label: 'Closures' },
-  { id: 'raw-bundles', label: 'Bulk / Raw' },
-];
-const HAIR_TYPES = ['Virgin', 'Remy', 'Raw'];
-const TEXTURES = ['Straight', 'Body Wave', 'Deep Curly', 'Kinky Curly', 'Wavy', 'Raw Wavy', 'Silky Straight', 'Curly'];
+// Length is a numeric field on the product (inches), so it stays a computed bucket rather than
+// an admin-managed list — there is no "min/max inches" field on the Attribute model to map to.
 const LENGTHS = [
   { id: 's', label: '8–14"', test: (l) => l >= 8 && l <= 14 },
   { id: 'm', label: '16–20"', test: (l) => l >= 16 && l <= 20 },
   { id: 'l', label: '22–28"', test: (l) => l >= 22 && l <= 28 },
   { id: 'xl', label: '30"+', test: (l) => l >= 30 },
 ];
-const COLORS = ['Natural Black', 'Ombre', 'Blonde', 'Custom'];
 
 export default function Shop() {
   const { products, loading, error, refetch } = useProducts({ limit: 100 });
   const recentlyViewed = useRecentlyViewedList();
+  const [searchParams] = useSearchParams();
+
+  // ---- Admin-managed filter sources (Categories, Sub Categories, Brands, Collections, Attributes) ----
+  const { categories } = useCategories();
+  const { brands } = useBrands();
+  const { collections } = useCollections();
+  const { attributes: hairTypeAttrs } = useAttributes('hairType');
+  const { attributes: textureAttrs } = useAttributes('hairTexture');
+  const { attributes: colorAttrs } = useAttributes('hairColour');
 
   const [cat, setCat] = useState(null);
+  const [subCat, setSubCat] = useState(null);
+  const [brand, setBrand] = useState(null);
+  const [collection, setCollection] = useState(null);
   const [hairType, setHairType] = useState(null);
   const [texture, setTexture] = useState(null);
   const [length, setLength] = useState(null);
@@ -41,23 +49,42 @@ export default function Shop() {
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  const activeCategory = categories.find((c) => c.id === cat);
+  const { subcategories } = useSubCategories(activeCategory?._id);
+
+  // Pre-select a collection when arriving from a Home page "Shop by Collection" link
+  useEffect(() => {
+    const fromUrl = searchParams.get('collection');
+    if (fromUrl) setCollection(fromUrl);
+  }, [searchParams]);
+
+  // Pre-select a category when arriving from a Home page "Shop by Category" circle
+  // (CategoryCircle links to /shop?category=<slug>, and `cat` here is matched against
+  // categories[].id, which normalizeCategory sets to the category's slug).
+  useEffect(() => {
+    const fromUrl = searchParams.get('category');
+    if (fromUrl) setCat(fromUrl);
+  }, [searchParams]);
+
   function reset() {
-    setCat(null); setHairType(null); setTexture(null); setLength(null);
+    setCat(null); setSubCat(null); setBrand(null); setCollection(null);
+    setHairType(null); setTexture(null); setLength(null);
     setColor(null); setRating(null); setMaxPrice(35000); setSort('featured');
   }
 
-  const activeFilterCount = [cat, hairType, texture, length, color, rating].filter(Boolean).length
+  const activeFilterCount = [cat, subCat, brand, collection, hairType, texture, length, color, rating].filter(Boolean).length
     + (maxPrice < 35000 ? 1 : 0);
 
   const filtered = useMemo(() => {
     let list = products.filter((p) => {
       if (cat && p.category !== cat) return false;
+      if (subCat && p.subcategory !== subCat) return false;
+      if (brand && p.brand !== brand) return false;
+      if (collection && p.collectionRef !== collection) return false;
       if (hairType && p.hairType !== hairType) return false;
       if (texture && p.texture !== texture) return false;
       if (length && !LENGTHS.find((l) => l.id === length).test(p.length)) return false;
-      if (color === 'Blonde' && p.category !== 'blonde') return false;
-      if (color === 'Ombre' && p.color !== 'Ombre') return false;
-      if (color === 'Natural Black' && !(p.color || '').includes('Natural') && !(p.color || '').includes('#1B')) return false;
+      if (color && p.color !== color) return false;
       if (rating && p.rating < rating) return false;
       if (p.price > maxPrice) return false;
       return true;
@@ -65,9 +92,9 @@ export default function Shop() {
     if (sort === 'price-asc') list = [...list].sort((a, b) => a.price - b.price);
     if (sort === 'price-desc') list = [...list].sort((a, b) => b.price - a.price);
     if (sort === 'rating') list = [...list].sort((a, b) => b.rating - a.rating);
-    if (sort === 'newest') list = [...list].sort((a, b) => (b.badge === 'New') - (a.badge === 'New'));
+    if (sort === 'newest') list = [...list].sort((a, b) => (b.newArrival || b.badge === 'New') - (a.newArrival || a.badge === 'New'));
     return list;
-  }, [products, cat, hairType, texture, length, color, rating, maxPrice, sort]);
+  }, [products, cat, subCat, brand, collection, hairType, texture, length, color, rating, maxPrice, sort]);
 
   const filterPanel = (
     <>
@@ -84,31 +111,67 @@ export default function Shop() {
         <div className="facc-range-labels"><span>₹4,000</span><span>Up to ₹{maxPrice.toLocaleString('en-IN')}</span></div>
       </FilterAccordion>
 
-      <FilterAccordion title="Category">
-        <div className="facc-chip-row">
-          {CATS.map((c) => (
-            <button key={c.id} className={`facc-chip ${cat === c.id ? 'active' : ''}`} onClick={() => setCat(cat === c.id ? null : c.id)}>
-              {c.label}
-            </button>
-          ))}
-        </div>
-      </FilterAccordion>
+      {categories.length > 0 && (
+        <FilterAccordion title="Category">
+          <div className="facc-chip-row">
+            {categories.map((c) => (
+              <button key={c.id} className={`facc-chip ${cat === c.id ? 'active' : ''}`} onClick={() => { setCat(cat === c.id ? null : c.id); setSubCat(null); }}>
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </FilterAccordion>
+      )}
 
-      <FilterAccordion title="Hair Type">
-        <div className="facc-chip-row">
-          {HAIR_TYPES.map((h) => (
-            <button key={h} className={`facc-chip ${hairType === h ? 'active' : ''}`} onClick={() => setHairType(hairType === h ? null : h)}>{h}</button>
-          ))}
-        </div>
-      </FilterAccordion>
+      {cat && subcategories.length > 0 && (
+        <FilterAccordion title="Sub Category">
+          <div className="facc-chip-row">
+            {subcategories.map((s) => (
+              <button key={s._id} className={`facc-chip ${subCat === s._id ? 'active' : ''}`} onClick={() => setSubCat(subCat === s._id ? null : s._id)}>{s.name}</button>
+            ))}
+          </div>
+        </FilterAccordion>
+      )}
 
-      <FilterAccordion title="Texture">
-        <div className="facc-chip-row">
-          {TEXTURES.map((t) => (
-            <button key={t} className={`facc-chip ${texture === t ? 'active' : ''}`} onClick={() => setTexture(texture === t ? null : t)}>{t}</button>
-          ))}
-        </div>
-      </FilterAccordion>
+      {brands.length > 0 && (
+        <FilterAccordion title="Brand" defaultOpen={false}>
+          <div className="facc-chip-row">
+            {brands.map((b) => (
+              <button key={b._id} className={`facc-chip ${brand === b._id ? 'active' : ''}`} onClick={() => setBrand(brand === b._id ? null : b._id)}>{b.name}</button>
+            ))}
+          </div>
+        </FilterAccordion>
+      )}
+
+      {collections.length > 0 && (
+        <FilterAccordion title="Collection" defaultOpen={false}>
+          <div className="facc-chip-row">
+            {collections.map((c) => (
+              <button key={c._id} className={`facc-chip ${collection === c._id ? 'active' : ''}`} onClick={() => setCollection(collection === c._id ? null : c._id)}>{c.name}</button>
+            ))}
+          </div>
+        </FilterAccordion>
+      )}
+
+      {hairTypeAttrs.length > 0 && (
+        <FilterAccordion title="Hair Type">
+          <div className="facc-chip-row">
+            {hairTypeAttrs.map((h) => (
+              <button key={h._id} className={`facc-chip ${hairType === h.name ? 'active' : ''}`} onClick={() => setHairType(hairType === h.name ? null : h.name)}>{h.name}</button>
+            ))}
+          </div>
+        </FilterAccordion>
+      )}
+
+      {textureAttrs.length > 0 && (
+        <FilterAccordion title="Texture">
+          <div className="facc-chip-row">
+            {textureAttrs.map((t) => (
+              <button key={t._id} className={`facc-chip ${texture === t.name ? 'active' : ''}`} onClick={() => setTexture(texture === t.name ? null : t.name)}>{t.name}</button>
+            ))}
+          </div>
+        </FilterAccordion>
+      )}
 
       <FilterAccordion title="Length" defaultOpen={false}>
         <div className="facc-chip-row">
@@ -118,13 +181,18 @@ export default function Shop() {
         </div>
       </FilterAccordion>
 
-      <FilterAccordion title="Color" defaultOpen={false}>
-        <div className="facc-chip-row">
-          {COLORS.map((c) => (
-            <button key={c} className={`facc-chip ${color === c ? 'active' : ''}`} onClick={() => setColor(color === c ? null : c)}>{c}</button>
-          ))}
-        </div>
-      </FilterAccordion>
+      {colorAttrs.length > 0 && (
+        <FilterAccordion title="Color" defaultOpen={false}>
+          <div className="facc-chip-row">
+            {colorAttrs.map((c) => (
+              <button key={c._id} className={`facc-chip ${color === c.name ? 'active' : ''}`} onClick={() => setColor(color === c.name ? null : c.name)}>
+                {c.colorSwatch && <span className="facc-swatch" style={{ background: c.colorSwatch }} />}
+                {c.name}
+              </button>
+            ))}
+          </div>
+        </FilterAccordion>
+      )}
 
       <FilterAccordion title="Rating" defaultOpen={false}>
         {[4, 4.5].map((r) => (

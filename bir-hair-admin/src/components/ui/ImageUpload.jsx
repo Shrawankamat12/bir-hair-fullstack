@@ -3,7 +3,7 @@ import { uploadImage } from '../../api/upload.api.js';
 import { Spinner } from './Feedback.jsx';
 
 /** Single-image uploader — used for logos, banners, category images, avatars. */
-export function SingleImageUpload({ value, onChange, label = 'Image', aspect = 'aspect-square', className = '' }) {
+export function SingleImageUpload({ value, onChange, label = 'Image', aspect = 'aspect-square', className = '', onUploadStateChange }) {
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(value || '');
@@ -12,6 +12,7 @@ export function SingleImageUpload({ value, onChange, label = 'Image', aspect = '
     if (!file) return;
     setPreview(URL.createObjectURL(file));
     setBusy(true);
+    onUploadStateChange?.(true);
     try {
       const res = await uploadImage(file);
       onChange(res?.url || res?.path || '');
@@ -20,6 +21,7 @@ export function SingleImageUpload({ value, onChange, label = 'Image', aspect = '
       onChange(preview);
     } finally {
       setBusy(false);
+      onUploadStateChange?.(false);
     }
   };
 

@@ -28,8 +28,10 @@ app.use('/api', apiLimiter);
 // structured request logging (morgan output piped through winston)
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev', { stream: logger.stream }));
 
-app.use('/uploads', express.static('src/uploads'));
-
+const path = require('path');
+const uploadsPath = path.join(__dirname, 'uploads');
+console.log('Serving uploads from:', uploadsPath);
+app.use('/uploads', express.static(uploadsPath));
 app.use('/api/v1', routes);
 
 app.get('/', (req, res) => res.send('B.I.R Hair API running'));
