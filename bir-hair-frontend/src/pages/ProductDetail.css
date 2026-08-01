@@ -12,6 +12,22 @@
 .pdp-thumbs{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:14px; }
 .pdp-thumb{ border-radius:12px; overflow:hidden; opacity:0.6; transition:opacity 200ms, outline 200ms; }
 .pdp-thumb.active{ opacity:1; outline:2px solid var(--gold); outline-offset:2px; }
+.pdp-thumb-video{ position:relative; }
+.pdp-thumb-play{
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:0.9rem; background:rgba(43,29,23,0.35);
+}
+.pdp-video-frame{ position:relative; border-radius:22px; overflow:hidden; background:#000; }
+.pdp-video{ width:100%; aspect-ratio:4/5; object-fit:cover; display:block; }
+.pdp-video-close{
+  position:absolute; top:12px; right:12px; padding:6px 12px; border-radius:999px;
+  background:rgba(0,0,0,0.55); color:#fff; font-size:0.75rem; font-weight:600;
+}
+.pdp-tags{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.pdp-tag-chip{
+  padding:5px 12px; border-radius:999px; font-size:0.72rem; font-weight:600;
+  background:rgba(201,162,39,0.12); color:var(--brown); border:1px solid rgba(201,162,39,0.3);
+}
 
 .pdp-title{ font-size:clamp(1.6rem,3vw,2.2rem); margin:12px 0 8px; }
 .pdp-rating{ display:flex; align-items:center; gap:8px; font-size:0.85rem; color:rgba(74,44,42,0.6); margin-bottom:16px; }

@@ -10,7 +10,7 @@ class SiteContentService {
   async update(payload) {
     let content = await siteContentRepository.model.findOne();
     if (!content) content = await siteContentRepository.create(payload);
-    else content = await siteContentRepository.updateById(content._id, payload, { new: true, runValidators: true });
+    else content = await siteContentRepository.updateById(content._id, payload);
     return content;
   }
 }

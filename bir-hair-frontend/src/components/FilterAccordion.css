@@ -20,6 +20,8 @@
 .facc-chip.active{
   background: var(--gold-grad); border-color:transparent; color:var(--espresso);
 }
+.facc-chip{ display:inline-flex; align-items:center; gap:6px; }
+.facc-swatch{ width:12px; height:12px; border-radius:50%; border:1px solid rgba(74,44,42,0.25); display:inline-block; flex-shrink:0; }
 
 .facc-check{ display:flex; align-items:center; gap:9px; font-size:0.85rem; color:rgba(74,44,42,0.8); cursor:pointer; }
 .facc-check input{ accent-color: var(--gold); width:15px; height:15px; }

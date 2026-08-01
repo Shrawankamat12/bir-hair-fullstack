@@ -9,11 +9,11 @@ class ProductService extends BaseService {
   }
 
   async listPublic(queryString) {
-    // $ne: 'hidden' (not $eq: 'visible') so products saved before the
-    // `visibility` field existed — where it's undefined — still show up.
+    // visibility is additive: products created before this field existed have no value
+    // set, so `$ne: 'hidden'` keeps them visible while still honouring an explicit "hidden".
     return this.repository.list({ isActive: true, visibility: { $ne: 'hidden' } }, queryString, {
       populate: { path: 'category', select: 'name slug' },
-      searchFields: ['name', 'sku'],
+      searchFields: ['name', 'sku', 'tags'],
     });
   }
 
@@ -77,28 +77,18 @@ class ProductService extends BaseService {
   }
 
   async getByBadge(badge) {
-    return this.repository.find({ badge, isActive: true });
+    return this.repository.find({ badge, isActive: true, visibility: { $ne: 'hidden' } });
   }
 
-  /** Home-page shelves: /products/flag/:flag where flag is one of the
-   *  boolean shelf fields on Product (newArrival, trending, premium,
-   *  bestSeller, flashSale, recommended, featured). */
-  static SHELF_FLAGS = ['newArrival', 'trending', 'premium', 'bestSeller', 'flashSale', 'recommended', 'featured'];
-
+  /** Homepage shelves: /products?flag=trending etc. also work generically via ApiFeatures,
+   *  this is a small convenience wrapper used by the byFlag route for a clean public URL. */
   async getByFlag(flag, limit = 12) {
-    if (!ProductService.SHELF_FLAGS.includes(flag)) {
-      throw new AppError(`Unknown product flag: ${flag}`, 400);
-    }
-    const filter = { isActive: true, visibility: { $ne: 'hidden' }, [flag]: true };
-    if (flag === 'flashSale') {
-      // Only show flash-sale items that haven't expired (or have no end date set).
-      filter.$or = [{ flashSaleEndsAt: { $exists: false } }, { flashSaleEndsAt: null }, { flashSaleEndsAt: { $gte: new Date() } }];
-    }
-    return this.repository.find(filter, {
-      populate: { path: 'category', select: 'name slug' },
-      sort: '-createdAt',
-      limit,
-    });
+    const allowed = ['featured', 'newArrival', 'trending', 'premium', 'bestSeller', 'flashSale', 'recommended'];
+    if (!allowed.includes(flag)) throw new AppError('Unknown product flag', 400);
+    return this.repository.find(
+      { [flag]: true, isActive: true, visibility: { $ne: 'hidden' } },
+      { sort: '-createdAt', limit, populate: { path: 'category', select: 'name slug' } }
+    );
   }
 }
 

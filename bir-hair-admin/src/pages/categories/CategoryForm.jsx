@@ -23,7 +23,8 @@ export default function CategoryForm() {
   const [saving, setSaving] = useState(false);
   const [slugTouched, setSlugTouched] = useState(false);
   const [errors, setErrors] = useState({});
-
+  const [uploading, setUploading] = useState({ image: false, banner: false, icon: false });
+  const anyUploading = Object.values(uploading).some(Boolean);
   useEffect(() => {
     categoryApi.getAll().then((data) => setCategories(Array.isArray(data) ? data : data?.items || [])).catch(() => setCategories([]));
   }, []);
@@ -68,7 +69,7 @@ export default function CategoryForm() {
         breadcrumbs={[{ label: 'Categories', to: '/categories' }, { label: isEdit ? 'Edit' : 'New' }]}
         actions={<>
           <Button type="button" variant="secondary" onClick={() => navigate('/categories')}>Cancel</Button>
-          <Button type="submit" loading={saving}>Save Category</Button>
+          <Button type="submit" loading={saving} disabled={anyUploading}>Save Category</Button>
         </>}
       />
 
@@ -116,13 +117,29 @@ export default function CategoryForm() {
 
         <div className="col-span-3 lg:col-span-1 flex flex-col gap-5">
           <Card title="Category Image">
-            <SingleImageUpload value={values.image} onChange={(v) => set('image', v)} label="Image" />
+          <SingleImageUpload
+  value={values.image}
+  onChange={(v) => set('image', v)}
+  onUploadStateChange={(b) => setUploading((s) => ({ ...s, image: b }))}
+  label="Image"
+/>
           </Card>
           <Card title="Banner Image">
-            <SingleImageUpload value={values.banner} onChange={(v) => set('banner', v)} label="Banner" aspect="aspect-[16/7]" />
+       <SingleImageUpload
+  value={values.banner}
+  onChange={(v) => set('banner', v)}
+  onUploadStateChange={(b) => setUploading((s) => ({ ...s, banner: b }))}
+  label="Banner"
+  aspect="aspect-[16/7]"
+/>
           </Card>
           <Card title="Icon">
-            <SingleImageUpload value={values.icon} onChange={(v) => set('icon', v)} label="Icon" />
+           <SingleImageUpload
+  value={values.icon}
+  onChange={(v) => set('icon', v)}
+  onUploadStateChange={(b) => setUploading((s) => ({ ...s, icon: b }))}
+  label="Icon"
+/>
           </Card>
           <Card title="Visibility">
             <div className="flex flex-col gap-3">

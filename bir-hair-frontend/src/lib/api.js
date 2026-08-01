@@ -1,5 +1,8 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
+// Server origin without the '/api/v1' suffix — used for static file URLs like /uploads/xyz.png
+const SERVER_ORIGIN = BASE_URL.replace(/\/api\/v1\/?$/, '');
+
 class ApiError extends Error {
   constructor(message, status, errors) {
     super(message);
@@ -51,5 +54,13 @@ export const api = {
   put: (path, body) => request(path, { method: 'PUT', body }),
   del: (path) => request(path, { method: 'DELETE' }),
 };
+
+// Resolves an image path returned by the backend (e.g. "/uploads/xyz.png")
+// into a full URL. If the backend already sends a full http(s) URL, it's used as-is.
+export function resolveImageUrl(image) {
+  if (!image) return null;
+  if (/^https?:\/\//i.test(image)) return image;
+  return `${SERVER_ORIGIN}${image}`;
+}
 
 export { ApiError, BASE_URL };

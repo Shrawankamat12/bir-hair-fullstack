@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import PhotoBlock from '../components/PhotoBlock';
 import ImageZoom from '../components/ImageZoom';
@@ -19,7 +19,8 @@ import { useStore } from '../context/StoreContext';
 import { useCompare } from '../context/CompareContext';
 import './ProductDetail.css';
 
-const LENGTH_OPTIONS = [14, 18, 22, 26, 30];
+const DEFAULT_LENGTHS = [14, 18, 22, 26, 30];
+const DEFAULT_COLORS = ['Natural Black', '#1B Natural Black', 'Ombre', 'Custom'];
 const TABS = ['Description', 'Specifications', 'Shipping', 'Reviews'];
 
 export default function ProductDetail() {
@@ -33,16 +34,37 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
   const [tab, setTab] = useState('Description');
   const [quickViewProduct, setQuickViewProduct] = useState(null);
+  const [showVideo, setShowVideo] = useState(false);
+
+  // Admin-managed variants (length / colour / texture / weight / density) drive the picker
+  // when the product has them; otherwise we fall back to the original static option lists.
+  const variants = product?.hasVariants ? (product.variants || []) : [];
+  const lengthOptions = useMemo(() => {
+    const fromVariants = [...new Set(variants.map((v) => v.length).filter(Boolean))];
+    return fromVariants.length ? fromVariants : DEFAULT_LENGTHS;
+  }, [variants]);
+  const colorOptions = useMemo(() => {
+    const fromVariants = [...new Set(variants.map((v) => v.colour).filter(Boolean))];
+    return fromVariants.length ? fromVariants : DEFAULT_COLORS;
+  }, [variants]);
+
+  const selectedVariant = variants.find(
+    (v) => (!v.length || String(v.length) === String(selLength)) && (!v.colour || v.colour === selColor)
+  );
 
   useEffect(() => {
     if (product) {
-      setSelLength(product.length || 18);
-      setSelColor(product.color);
+      setSelLength(lengthOptions[0] ?? product.length ?? 18);
+      setSelColor(colorOptions[0] ?? product.color);
       setActiveImg(0);
+      setShowVideo(false);
     }
-  }, [product]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product?.id]);
 
   const { products: sameCategory } = useProducts(product ? { category: product.category, limit: 8 } : {});
+  // "Similar Products": overlap on admin-assigned tags, distinct from same-category "Related Products" below.
+  const { products: tagMatches } = useProducts(product?.tags?.length ? { tags: product.tags[0], limit: 8 } : {});
   const { reviews, loading: reviewsLoading, refetch: refetchReviews } = useProductReviews(product?.id);
   const recentlyViewed = useRecentlyViewed(product);
 
@@ -79,7 +101,20 @@ export default function ProductDetail() {
   if (!product) return <Navigate to="/404" replace />;
 
   const related = sameCategory.filter((p) => p.id !== product.id).slice(0, 4);
-  const thumbImages = [product.image, ...related.map((p) => p.image)].filter(Boolean).slice(0, 4);
+  const similar = tagMatches.filter((p) => p.id !== product.id && !related.find((r) => r.id === p.id)).slice(0, 4);
+
+  // Real product gallery first (admin-uploaded), topped up with related-product imagery only
+  // if the catalog entry doesn't have enough images of its own yet.
+  const ownGallery = product.gallery?.length
+    ? product.gallery.map((g) => (typeof g === 'string' ? g : g.url)).filter(Boolean)
+    : product.images || [];
+  const thumbImages = [...new Set([product.image, ...ownGallery])].filter(Boolean);
+  if (thumbImages.length < 2) thumbImages.push(...related.map((p) => p.image).filter(Boolean));
+  const galleryImages = [...new Set(thumbImages)].slice(0, 6);
+
+  const effectivePrice = selectedVariant?.price ?? product.price;
+  const effectiveStock = selectedVariant ? selectedVariant.stock : product.stock;
+  const effectiveSku = selectedVariant?.sku || product.sku;
 
   async function submitReview(e) {
     e.preventDefault();
@@ -102,25 +137,39 @@ export default function ProductDetail() {
 
   return (
     <>
-      <PageHeader crumbs={[{ label: 'Shop', to: '/shop' }, { label: product.name }]} title={product.name} lede={`SKU ${product.sku} · ${product.hairType || ''} · ${product.texture || ''}`} />
+      <PageHeader crumbs={[{ label: 'Shop', to: '/shop' }, { label: product.name }]} title={product.name} lede={`SKU ${effectiveSku} · ${product.hairType || ''} · ${product.texture || ''}`} />
 
       <div className="section pdp-section">
         <div className="container pdp-grid">
           <div className="pdp-gallery">
-            <ImageZoom src={thumbImages[activeImg] || product.image} alt={product.name} tone={product.tone} rounded={22} />
-            {thumbImages.length > 1 && (
+            {showVideo && product.video ? (
+              <div className="pdp-video-frame">
+                <video src={product.video} controls autoPlay className="pdp-video" />
+                <button className="pdp-video-close" onClick={() => setShowVideo(false)} aria-label="Back to photos">✕ Photos</button>
+              </div>
+            ) : (
+              <ImageZoom src={galleryImages[activeImg] || product.image} alt={product.name} tone={product.tone} rounded={22} />
+            )}
+            {(galleryImages.length > 1 || product.video) && (
               <div className="pdp-thumbs">
-                {thumbImages.map((img, i) => (
-                  <button key={i} className={`pdp-thumb ${activeImg === i ? 'active' : ''}`} onClick={() => setActiveImg(i)}>
-                    <PhotoBlock tone={['gold', 'brown', 'beige', 'espresso'][i]} ratio="1/1" rounded={12} strands={false} src={img} alt="" />
+                {galleryImages.map((img, i) => (
+                  <button key={i} className={`pdp-thumb ${!showVideo && activeImg === i ? 'active' : ''}`} onClick={() => { setActiveImg(i); setShowVideo(false); }}>
+                    <PhotoBlock tone={['gold', 'brown', 'beige', 'espresso'][i % 4]} ratio="1/1" rounded={12} strands={false} src={img} alt="" />
                   </button>
                 ))}
+                {product.video && (
+                  <button className={`pdp-thumb pdp-thumb-video ${showVideo ? 'active' : ''}`} onClick={() => setShowVideo(true)} aria-label="Play product video">
+                    <PhotoBlock tone="espresso" ratio="1/1" rounded={12} strands={false} src={product.image} alt="" />
+                    <span className="pdp-thumb-play">▶</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
 
           <div className="pdp-info">
             {product.badge && <span className={`badge badge-${product.badge.toLowerCase().replace(/[^a-z]/g, '')}`}>{product.badge}</span>}
+            {product.saleBadgeText && <span className="badge badge-discount">{product.saleBadgeText}</span>}
             <h1 className="pdp-title">{product.name}</h1>
             <div className="pdp-rating">
               <StarRating value={product.rating} />
@@ -128,16 +177,22 @@ export default function ProductDetail() {
             </div>
             <div className="pdp-price">
               {product.discountPct > 0 && <span className="price-strike">{rupee(product.mrp)}</span>}
-              <span className="price-now" style={{ fontSize: '1.7rem' }}>{rupee(product.price)}</span>
+              <span className="price-now" style={{ fontSize: '1.7rem' }}>{rupee(effectivePrice)}</span>
               {product.discountPct > 0 && <span className="badge badge-discount">-{product.discountPct}%</span>}
             </div>
             {product.description && <p className="pdp-desc">{product.description}</p>}
 
+            {product.tags?.length > 0 && (
+              <div className="pdp-tags">
+                {product.tags.map((t) => <span className="pdp-tag-chip" key={t}>{t}</span>)}
+              </div>
+            )}
+
             <div className="pdp-variant">
               <span className="pdp-variant-label">Length</span>
               <div className="facc-chip-row">
-                {LENGTH_OPTIONS.map((l) => (
-                  <button key={l} className={`facc-chip ${selLength === l ? 'active' : ''}`} onClick={() => setSelLength(l)}>{l}"</button>
+                {lengthOptions.map((l) => (
+                  <button key={l} className={`facc-chip ${String(selLength) === String(l) ? 'active' : ''}`} onClick={() => setSelLength(l)}>{l}"</button>
                 ))}
               </div>
             </div>
@@ -145,7 +200,7 @@ export default function ProductDetail() {
             <div className="pdp-variant">
               <span className="pdp-variant-label">Color</span>
               <div className="facc-chip-row">
-                {['Natural Black', '#1B Natural Black', 'Ombre', product.category === 'blonde' ? '#613 Blonde' : 'Custom'].map((c) => (
+                {colorOptions.map((c) => (
                   <button key={c} className={`facc-chip ${selColor === c ? 'active' : ''}`} onClick={() => setSelColor(c)}>{c}</button>
                 ))}
               </div>
@@ -161,12 +216,12 @@ export default function ProductDetail() {
             </div>
 
             <div className="pdp-stock">
-              {product.stock > 0 ? '✓ In stock — ships within 24 hours from Delhi' : 'Currently out of stock'}
+              {effectiveStock > 0 ? '✓ In stock — ships within 24 hours from Delhi' : 'Currently out of stock'}
             </div>
 
             <div className="pdp-actions">
-              <button className="btn btn-outline on-light" onClick={() => addToCart({ ...product, length: selLength, color: selColor }, qty)}>Add to Cart</button>
-              <Link to="/checkout" className="btn btn-gold" onClick={() => addToCart({ ...product, length: selLength, color: selColor }, qty)}>Buy Now</Link>
+              <button className="btn btn-outline on-light" onClick={() => addToCart({ ...product, price: effectivePrice, sku: effectiveSku, length: selLength, color: selColor }, qty)}>Add to Cart</button>
+              <Link to="/checkout" className="btn btn-gold" onClick={() => addToCart({ ...product, price: effectivePrice, sku: effectiveSku, length: selLength, color: selColor }, qty)}>Buy Now</Link>
               <button className={`pdp-wish-btn ${isWishlisted(product.id) ? 'active' : ''}`} onClick={() => toggleWishlist(product)} aria-label="Wishlist">♥</button>
             </div>
 
@@ -188,10 +243,10 @@ export default function ProductDetail() {
               <div className="pdp-bulk-table">
                 <div className="pdp-bulk-row pdp-bulk-head"><span>Quantity</span><span>Discount</span><span>Price / Bundle</span></div>
                 {[
-                  { qty: '1–2 bundles', off: '—', price: product.price },
-                  { qty: '3–5 bundles', off: '5% off', price: Math.round(product.price * 0.95) },
-                  { qty: '6–10 bundles', off: '10% off', price: Math.round(product.price * 0.9) },
-                  { qty: '11+ bundles', off: '15% off', price: Math.round(product.price * 0.85) },
+                  { qty: '1–2 bundles', off: '—', price: effectivePrice },
+                  { qty: '3–5 bundles', off: '5% off', price: Math.round(effectivePrice * 0.95) },
+                  { qty: '6–10 bundles', off: '10% off', price: Math.round(effectivePrice * 0.9) },
+                  { qty: '11+ bundles', off: '15% off', price: Math.round(effectivePrice * 0.85) },
                 ].map((row) => (
                   <div className="pdp-bulk-row" key={row.qty}><span>{row.qty}</span><span className="pdp-bulk-off">{row.off}</span><span>{rupee(row.price)}</span></div>
                 ))}
@@ -218,17 +273,26 @@ export default function ProductDetail() {
               <p>{product.description || `This piece is sourced through our Delhi factory's standard chain: hand-collected, sorted by our artisans for ${(product.texture || '').toLowerCase()} pattern and root direction, then double-drawn for uniform thickness before wefting. Every batch carries a QC signature before it leaves Kirti Nagar.`}</p>
             )}
             {tab === 'Specifications' && (
-              <ul className="pdp-spec-list">
-                <li><span>Hair Type</span><span>{product.hairType}</span></li>
-                <li><span>Texture</span><span>{product.texture}</span></li>
-                <li><span>Weight</span><span>{product.weight} per bundle</span></li>
-                <li><span>Available Lengths</span><span>{LENGTH_OPTIONS.join('", ')}"</span></li>
-                <li><span>Origin</span><span>Kirti Nagar, Delhi, India</span></li>
-                <li><span>SKU</span><span>{product.sku}</span></li>
-              </ul>
+              <>
+                {product.specifications && <p style={{ marginBottom: 16, whiteSpace: 'pre-line' }}>{product.specifications}</p>}
+                <ul className="pdp-spec-list">
+                  <li><span>Hair Type</span><span>{product.hairType}</span></li>
+                  <li><span>Texture</span><span>{product.texture}</span></li>
+                  <li><span>Weight</span><span>{product.weight} per bundle</span></li>
+                  <li><span>Available Lengths</span><span>{lengthOptions.join('", ')}"</span></li>
+                  <li><span>Origin</span><span>Kirti Nagar, Delhi, India</span></li>
+                  <li><span>SKU</span><span>{effectiveSku}</span></li>
+                </ul>
+                {product.careInstructions && (
+                  <>
+                    <span className="eyebrow" style={{ display: 'block', marginTop: 20 }}>Care Instructions</span>
+                    <p>{product.careInstructions}</p>
+                  </>
+                )}
+              </>
             )}
             {tab === 'Shipping' && (
-              <p>Ships from our Delhi warehouse within 24 hours. Domestic orders arrive in 3–6 business days; international orders in 6–12 business days depending on customs processing. Bulk and wholesale orders may ship by air freight with a separate timeline confirmed at checkout.</p>
+              <p>{product.shippingInfo || 'Ships from our Delhi warehouse within 24 hours. Domestic orders arrive in 3–6 business days; international orders in 6–12 business days depending on customs processing. Bulk and wholesale orders may ship by air freight with a separate timeline confirmed at checkout.'}</p>
             )}
             {tab === 'Reviews' && (
               <div className="pdp-reviews">
@@ -282,6 +346,17 @@ export default function ProductDetail() {
             <div className="section-head"><span className="eyebrow">You May Also Like</span><h2 className="section-title">Related Products</h2></div>
             <div className="product-grid pdp-related-grid">
               {related.map((p) => <ProductCard product={p} key={p.id} onQuickView={setQuickViewProduct} />)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {similar.length > 0 && (
+        <div className="section section--tight-top">
+          <div className="container">
+            <div className="section-head"><span className="eyebrow">Similar Styles</span><h2 className="section-title">Similar Products</h2></div>
+            <div className="product-grid pdp-related-grid">
+              {similar.map((p) => <ProductCard product={p} key={p.id} onQuickView={setQuickViewProduct} />)}
             </div>
           </div>
         </div>
