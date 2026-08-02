@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { uploadImage } from '../../api/upload.api.js';
 import { Spinner } from './Feedback.jsx';
+import { resolveMediaUrl } from '../../lib/media.js';
 
 /** Single-image uploader — used for logos, banners, category images, avatars. */
 export function SingleImageUpload({ value, onChange, label = 'Image', aspect = 'aspect-square', className = '', onUploadStateChange }) {
@@ -25,6 +26,8 @@ export function SingleImageUpload({ value, onChange, label = 'Image', aspect = '
     }
   };
 
+  const displaySrc = preview.startsWith('blob:') ? preview : resolveMediaUrl(preview);
+
   return (
     <div className={className}>
       <div
@@ -36,7 +39,7 @@ export function SingleImageUpload({ value, onChange, label = 'Image', aspect = '
         {busy && <div className="absolute inset-0 bg-white/70 flex items-center justify-center"><Spinner /></div>}
         {preview ? (
           <>
-            <img src={preview} alt={label} className="h-full w-full object-cover" />
+            <img src={displaySrc} alt={label} className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               <span className="text-white text-xs font-semibold">Change</span>
             </div>
@@ -98,6 +101,11 @@ export function GalleryUpload({ images = [], onChange }) {
     dragIndex.current = null;
   };
 
+  // blob: URLs (fresh local previews before upload finishes) must be used
+  // as-is; everything else (relative /uploads/... paths, or absolute URLs)
+  // goes through resolveMediaUrl.
+  const displayUrl = (url) => (url?.startsWith('blob:') ? url : resolveMediaUrl(url));
+
   return (
     <div>
       <div className="flex flex-wrap gap-3">
@@ -110,7 +118,7 @@ export function GalleryUpload({ images = [], onChange }) {
             onDrop={() => onDrop(idx)}
             className="relative h-24 w-24 rounded-md overflow-hidden border border-border group cursor-grab bg-surface-muted"
           >
-            <img src={img.url} alt="" className="h-full w-full object-cover" onClick={() => setZoomed(img.url)} />
+            <img src={displayUrl(img.url)} alt="" className="h-full w-full object-cover" onClick={() => setZoomed(img.url)} />
             {img.isPrimary && <span className="absolute top-1 left-1 bg-brand-gradient text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">PRIMARY</span>}
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
               {!img.isPrimary && (
@@ -139,7 +147,7 @@ export function GalleryUpload({ images = [], onChange }) {
 
       {zoomed && (
         <div className="fixed inset-0 z-[400] bg-black/80 flex items-center justify-center p-8" onClick={() => setZoomed(null)}>
-          <img src={zoomed} alt="" className="max-h-full max-w-full rounded-md shadow-2xl" />
+          <img src={displayUrl(zoomed)} alt="" className="max-h-full max-w-full rounded-md shadow-2xl" />
         </div>
       )}
     </div>

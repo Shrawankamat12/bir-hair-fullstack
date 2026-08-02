@@ -4,6 +4,7 @@ import productApi from '../../api/product.api.js';
 import { Button } from '../../components/ui/index.js';
 import { PageLoader, EmptyState } from '../../components/ui/Feedback.jsx';
 import { formatCurrency } from '../../lib/format.js';
+import { resolveMediaUrl } from '../../lib/media.js';
 
 /** Storefront-style read-only preview — how the product will look to customers before publishing. */
 export default function ProductPreview() {
@@ -31,10 +32,10 @@ export default function ProductPreview() {
         <div className="grid grid-cols-2 gap-8">
           <div>
             <div className="aspect-square bg-surface-muted rounded-lg overflow-hidden mb-3">
-              {gallery[0] ? <img src={gallery[0].url} className="h-full w-full object-cover" /> : null}
+              {gallery[0] ? <img src={resolveMediaUrl(gallery[0].url)} className="h-full w-full object-cover" /> : null}
             </div>
             <div className="flex gap-2">
-              {gallery.slice(1, 5).map((g, i) => <img key={i} src={g.url} className="h-16 w-16 rounded-md object-cover border border-border-soft" />)}
+              {gallery.slice(1, 5).map((g, i) => <img key={i} src={resolveMediaUrl(g.url)} className="h-16 w-16 rounded-md object-cover border border-border-soft" />)}
             </div>
           </div>
           <div>

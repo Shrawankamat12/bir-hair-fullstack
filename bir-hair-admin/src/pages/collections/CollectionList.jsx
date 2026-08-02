@@ -6,6 +6,7 @@ import SimpleEntityForm from '../../components/crud/SimpleEntityForm.jsx';
 import { StatusBadge } from '../../components/ui/index.js';
 import { useToast } from '../../components/ui/Feedback.jsx';
 import { slugify } from '../../lib/format.js';
+import { resolveMediaUrl } from '../../lib/media.js';
 
 export default function CollectionList() {
   const entity = useEntityList(collectionApi, { searchKeys: ['name', 'slug'] });
@@ -25,7 +26,7 @@ export default function CollectionList() {
   ];
 
   const columns = [
-    { key: 'image', label: 'Image', render: (r) => r.image ? <img src={r.image} className="h-9 w-9 rounded object-cover border border-border-soft" /> : <div className="h-9 w-9 rounded bg-surface-muted" /> },
+    { key: 'image', label: 'Image', render: (r) => r.image ? <img src={resolveMediaUrl(r.image)} alt={r.name} className="h-9 w-9 rounded object-cover border border-border-soft" /> : <div className="h-9 w-9 rounded bg-surface-muted" /> },
     { key: 'name', label: 'Collection', sortable: true },
     { key: 'slug', label: 'Slug', render: (r) => <code className="text-xs">{r.slug}</code> },
     { key: 'productCount', label: 'Products', render: (r) => r.productCount ?? 0 },
