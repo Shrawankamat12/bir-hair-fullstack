@@ -12,8 +12,33 @@ class MediaService {
     return [...new Set(all.map((a) => a.folder || 'general'))];
   }
 
-  async save({ file, folder, userId }) {
+  async save({
+    file,
+    url,
+    publicId,
+    folder,
+    originalName,
+    size,
+    mimeType,
+    userId,
+  }) {
+
+    // -------- JSON Request --------
+    if (!file && url) {
+      return mediaAssetRepository.create({
+        url,
+        publicId,
+        folder: folder || 'general',
+        originalName,
+        size,
+        mimeType,
+        uploadedBy: userId,
+      });
+    }
+
+    // -------- File Upload --------
     const isCloud = isConfigured && file.path;
+
     return mediaAssetRepository.create({
       url: isCloud ? file.path : `/uploads/${file.filename}`,
       publicId: isCloud ? file.filename : undefined,
@@ -27,10 +52,15 @@ class MediaService {
 
   async remove(id) {
     const asset = await mediaAssetRepository.findById(id);
+
     if (!asset) return null;
+
     if (isConfigured && asset.publicId) {
-      try { await cloudinary.uploader.destroy(asset.publicId); } catch (_) { /* best-effort */ }
+      try {
+        await cloudinary.uploader.destroy(asset.publicId);
+      } catch (_) {}
     }
+
     return mediaAssetRepository.deleteById(id);
   }
 }

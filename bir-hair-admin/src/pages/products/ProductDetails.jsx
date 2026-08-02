@@ -4,6 +4,7 @@ import productApi from '../../api/product.api.js';
 import { PageHeader, Card, Button, Badge, StatusBadge } from '../../components/ui/index.js';
 import { PageLoader, EmptyState } from '../../components/ui/Feedback.jsx';
 import { formatCurrency, formatDate, stockStatus } from '../../lib/format.js';
+import { resolveMediaUrl } from '../../lib/media.js';
 
 export default function ProductDetails() {
   const { id } = useParams();
@@ -40,11 +41,25 @@ export default function ProductDetails() {
             <div className="flex gap-4">
               <div className="flex flex-col gap-2 w-16">
                 {gallery.map((g, i) => (
-                  <img key={i} src={g.url} onClick={() => setActiveImg(i)} className={`h-14 w-14 rounded-md object-cover border cursor-pointer ${activeImg === i ? 'border-brand-magenta' : 'border-border-soft'}`} />
+                  <img
+                    key={g.id || g.url || i}
+                    src={resolveMediaUrl(g.url)}
+                    alt={`${product.name} thumbnail ${i + 1}`}
+                    onClick={() => setActiveImg(i)}
+                    className={`h-14 w-14 rounded-md object-cover border cursor-pointer ${activeImg === i ? 'border-brand-magenta' : 'border-border-soft'}`}
+                  />
                 ))}
               </div>
               <div className="flex-1 aspect-square max-h-96 bg-surface-muted rounded-lg overflow-hidden flex items-center justify-center">
-                {gallery[activeImg] ? <img src={gallery[activeImg].url} className="h-full w-full object-cover" /> : <span className="text-ink-faint text-sm">No images</span>}
+                {gallery[activeImg] ? (
+                  <img
+                    src={resolveMediaUrl(gallery[activeImg].url)}
+                    alt={product.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-ink-faint text-sm">No images</span>
+                )}
               </div>
             </div>
             {product.video && (
@@ -71,7 +86,7 @@ export default function ProductDetails() {
                   </tr></thead>
                   <tbody>
                     {product.variants.map((v, i) => (
-                      <tr key={i} className="border-t border-border-soft">
+                      <tr key={v.sku || i} className="border-t border-border-soft">
                         <td className="px-3.5 py-2">{v.length || '—'}</td><td className="px-3.5 py-2">{v.colour || '—'}</td>
                         <td className="px-3.5 py-2">{v.texture || '—'}</td><td className="px-3.5 py-2">{v.weight || '—'}</td>
                         <td className="px-3.5 py-2">{v.density || '—'}</td><td className="px-3.5 py-2"><code className="text-xs">{v.sku}</code></td>

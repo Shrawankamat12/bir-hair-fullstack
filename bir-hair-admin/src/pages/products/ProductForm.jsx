@@ -122,7 +122,27 @@ export default function ProductForm() {
           const flashSaleEndsAt = data.flashSaleEndsAt
             ? new Date(data.flashSaleEndsAt).toISOString().slice(0, 16)
             : "";
-          setValues({ ...empty, ...data, flashSaleEndsAt });
+          // Backend returns category/subCategory/collection/brand (possibly
+          // populated as objects). The form binds to *Id fields, so extract
+          // the id whether it comes back as a string or a populated object.
+          const idOf = (val) =>
+            val && typeof val === "object" ? val._id || val.id || "" : val || "";
+
+          setValues({
+            ...empty,
+            ...data,
+            categoryId: idOf(data.category) || data.categoryId || "",
+            subcategoryId:
+              idOf(data.subcategory) || data.subcategoryId || "",
+            collectionId: idOf(data.collectionRef) || data.collectionId || "",
+            brandId: idOf(data.brand) || data.brandId || "",
+            // Schema has no "status" field — it's isActive.
+            status: data.isActive ?? true,
+            // Form's "Price (MRP)" field maps to the schema's required "mrp".
+            // Fall back to data.price for older records saved before this fix.
+            price: data.mrp ?? data.price ?? "",
+            flashSaleEndsAt,
+          });
           setLoading(false);
         })
         .catch(() => setLoading(false));
@@ -152,21 +172,109 @@ export default function ProductForm() {
     return Object.keys(errs).length === 0;
   };
 
+  // Cleans form values into the shape the backend schema expects:
+  // - empty-string ObjectId refs -> undefined (not "")
+  // - numeric fields -> actual numbers, not strings
+  // - empty date -> undefined instead of ""
+  const buildPayload = (v) => {
+    const toObjectIdOrUndefined = (val) => (val ? val : undefined);
+    const toNumberOrUndefined = (val) =>
+      val === "" || val == null ? undefined : Number(val);
+
+    const {
+      categoryId,
+      subcategoryId,
+      collectionId,
+      brandId,
+      status,
+      ...rest
+    } = v;
+
+    const mrpValue = toNumberOrUndefined(v.price);
+    const discountValue = toNumberOrUndefined(v.discountPrice);
+
+    return {
+      ...rest,
+      // Backend field names differ from the form's *Id fields.
+      category: toObjectIdOrUndefined(categoryId),
+      subcategory: toObjectIdOrUndefined(subcategoryId),
+      collectionRef: toObjectIdOrUndefined(collectionId),
+      brand: toObjectIdOrUndefined(brandId),
+      // Schema has no "status" field — it's isActive.
+      isActive: Boolean(status),
+      // Schema requires BOTH "mrp" and "price". The form's "Price (MRP)"
+      // field is the mrp; the actual selling price is the discount price
+      // if one is set, otherwise it equals the mrp.
+      mrp: mrpValue,
+      price: discountValue ?? mrpValue,
+      discountPrice: discountValue,
+      costPrice: toNumberOrUndefined(v.costPrice),
+      stock: Number(v.stock) || 0,
+      minStock: Number(v.minStock) || 0,
+      flashSaleEndsAt:
+        v.flashSale && v.flashSaleEndsAt ? v.flashSaleEndsAt : undefined,
+      variants: (v.variants || []).map((variant) => ({
+        ...variant,
+        price: toNumberOrUndefined(variant.price),
+        stock: Number(variant.stock) || 0,
+      })),
+    };
+  };
+
+  // Pulls the real field-level messages out of a backend validation error
+  // so the toast tells you exactly which field failed and why.
+  // Handles both shapes: errors as an array of {field, message} / strings,
+  // or errors as an object keyed by field name (Mongoose default).
+  const extractValidationMessage = (err) => {
+    const data = err?.response?.data;
+    if (!data) return "Could not save product";
+
+    if (Array.isArray(data.errors)) {
+      const messages = data.errors
+        .map((e) => {
+          if (typeof e === "string") return e;
+          const field = e?.path || e?.field || e?.param;
+          const msg = e?.message || e?.msg;
+          return field ? `${field}: ${msg}` : msg;
+        })
+        .filter(Boolean);
+      if (messages.length) return messages.join(" · ");
+    } else if (data.errors && typeof data.errors === "object") {
+      const messages = Object.entries(data.errors).map(
+        ([field, e]) => `${field}: ${e?.message || e}`,
+      );
+      if (messages.length) return messages.join(" · ");
+    }
+    return data.message || "Could not save product";
+  };
+
+  // Logs the full error as readable JSON text (not a collapsed console object)
+  // so it can be copy-pasted in full for debugging.
+  const logValidationError = (label, err) => {
+    try {
+      console.error(label, JSON.stringify(err?.response?.data, null, 2));
+    } catch {
+      console.error(label, err?.response?.data || err);
+    }
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setSaving(true);
     try {
+      const payload = buildPayload(values);
       if (isEdit) {
-        await productApi.update(id, values);
+        await productApi.update(id, payload);
         toast.success("Product updated");
       } else {
-        await productApi.create(values);
+        await productApi.create(payload);
         toast.success("Product created");
       }
       navigate("/products");
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Could not save product");
+      logValidationError("Product save validation error:", err);
+      toast.error(extractValidationMessage(err));
     } finally {
       setSaving(false);
     }
@@ -176,16 +284,19 @@ export default function ProductForm() {
     if (!isEdit) return;
     const { _id, id: _id2, sku, slug, ...rest } = values;
     try {
-      await productApi.create({
-        ...rest,
-        name: `${values.name} (Copy)`,
-        sku: `${values.sku}-COPY`,
-        slug: `${values.slug}-copy`,
-      });
+      await productApi.create(
+        buildPayload({
+          ...rest,
+          name: `${values.name} (Copy)`,
+          sku: `${values.sku}-COPY`,
+          slug: `${values.slug}-copy`,
+        }),
+      );
       toast.success("Product duplicated");
       navigate("/products");
-    } catch {
-      toast.error("Could not duplicate product");
+    } catch (err) {
+      logValidationError("Product duplicate validation error:", err);
+      toast.error(extractValidationMessage(err));
     }
   };
 
@@ -217,7 +328,7 @@ export default function ProductForm() {
   if (loading) return <PageLoader label="Loading product…" />;
 
   return (
-    <form onSubmit={submit}>
+    <div>
       <PageHeader
         title={isEdit ? "Edit Product" : "Add Product"}
         breadcrumbs={[
@@ -247,7 +358,7 @@ export default function ProductForm() {
             >
               Cancel
             </Button>
-            <Button type="submit" loading={saving}>
+            <Button type="button" loading={saving} onClick={submit}>
               Save Product
             </Button>
           </>
@@ -323,11 +434,15 @@ export default function ProductForm() {
                 >
                   <option value="">Select sub-category</option>
                   {subcategories
-                    .filter(
-                      (s) =>
-                        !values.categoryId ||
-                        s.categoryId === values.categoryId,
-                    )
+                    .filter((s) => {
+                      if (!values.categoryId) return true;
+                      const subCat = s.category ?? s.categoryId;
+                      const subCatId =
+                        subCat && typeof subCat === "object"
+                          ? subCat._id || subCat.id
+                          : subCat;
+                      return subCatId === values.categoryId;
+                    })
                     .map((c) => (
                       <option key={c._id || c.id} value={c._id || c.id}>
                         {c.name}
@@ -760,6 +875,6 @@ export default function ProductForm() {
           )}
         </div>
       </Card>
-    </form>
+    </div>
   );
 }

@@ -24,7 +24,7 @@ export default function EntityListPage({
   onView,
   statusOptions,
   exportFilename = "export",
-  showExport = true,
+  showExport = false,
   extraActions,
   extraToolbar,
 }) {

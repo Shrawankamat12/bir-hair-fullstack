@@ -6,6 +6,7 @@ import EntityListPage from '../../components/crud/EntityListPage.jsx';
 import SimpleEntityForm from '../../components/crud/SimpleEntityForm.jsx';
 import { StatusBadge } from '../../components/ui/index.js';
 import { useToast } from '../../components/ui/Feedback.jsx';
+import { resolveMediaUrl } from '../../lib/media.js';
 
 export default function SubcategoryList() {
   const entity = useEntityList(subcategoryApi, { searchKeys: ['name', 'slug'] });
@@ -31,7 +32,16 @@ export default function SubcategoryList() {
   ];
 
   const columns = [
-    { key: 'image', label: 'Image', render: (r) => r.image ? <img src={r.image} className="h-9 w-9 rounded object-cover border border-border-soft" /> : <div className="h-9 w-9 rounded bg-surface-muted" /> },
+    {
+      key: 'image',
+      label: 'Image',
+      render: (r) =>
+        r.image ? (
+          <img src={resolveMediaUrl(r.image)} alt={r.name} className="h-9 w-9 rounded object-cover border border-border-soft" />
+        ) : (
+          <div className="h-9 w-9 rounded bg-surface-muted" />
+        ),
+    },
     { key: 'name', label: 'Name', sortable: true },
     { key: 'categoryId', label: 'Parent Category', render: (r) => categoryName(r.categoryId) },
     { key: 'productCount', label: 'Products', render: (r) => r.productCount ?? 0 },
