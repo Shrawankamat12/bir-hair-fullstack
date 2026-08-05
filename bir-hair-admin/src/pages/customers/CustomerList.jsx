@@ -5,14 +5,32 @@ import EntityListPage from '../../components/crud/EntityListPage.jsx';
 import { StatusBadge } from '../../components/ui/index.js';
 import { formatCurrency, formatDate } from '../../lib/format.js';
 
+const STATUS_OPTIONS = [
+  { value: 'active', label: 'Active' },
+  { value: 'blocked', label: 'Blocked' },
+  { value: 'banned', label: 'Banned' },
+];
+
 export default function CustomerList() {
   const navigate = useNavigate();
   const entity = useEntityList(customerApi, { searchKeys: ['name', 'email', 'phone'] });
 
   const columns = [
-    { key: 'name', label: 'Customer', sortable: true, render: (r) => <span className="font-semibold cursor-pointer hover:text-brand-magenta" onClick={() => navigate(`/customers/${r._id || r.id}`)}>{r.name}</span> },
+    {
+      key: 'name',
+      label: 'Customer',
+      sortable: true,
+      render: (r) => (
+        <span
+          className="font-semibold cursor-pointer hover:text-brand-magenta"
+          onClick={() => navigate(`/customers/${r._id || r.id}`)}
+        >
+          {r.name}
+        </span>
+      ),
+    },
     { key: 'email', label: 'Email' },
-    { key: 'phone', label: 'Phone' },
+    { key: 'phone', label: 'Phone', render: (r) => r.phone || '—' },
     { key: 'ordersCount', label: 'Orders', sortable: true, render: (r) => r.ordersCount ?? 0 },
     { key: 'totalSpent', label: 'Total Spent', sortable: true, render: (r) => formatCurrency(r.totalSpent) },
     { key: 'status', label: 'Status', render: (r) => <StatusBadge status={r.status || 'active'} /> },
@@ -27,8 +45,8 @@ export default function CustomerList() {
       columns={columns}
       onView={(row) => navigate(`/customers/${row._id || row.id}`)}
       exportFilename="customers"
-      filterOptions={[{ key: 'status', label: 'Status', options: [{ value: 'active', label: 'Active' }, { value: 'banned', label: 'Banned' }] }]}
-      statusOptions={[{ value: 'active', label: 'Active' }, { value: 'banned', label: 'Banned' }]}
+      filterOptions={[{ key: 'status', label: 'Status', options: STATUS_OPTIONS }]}
+      statusOptions={STATUS_OPTIONS}
     />
   );
 }

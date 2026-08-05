@@ -13,6 +13,12 @@ const TABS = [
   { value: 'payments', label: 'Payments' },
 ];
 
+const statusLabel = (s) =>
+  (s || '')
+    .split('_')
+    .map((w) => w[0]?.toUpperCase() + w.slice(1))
+    .join(' ');
+
 export default function CustomerDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -31,7 +37,16 @@ export default function CustomerDetails() {
   const wishlist = customer.wishlist || [];
   const reviews = customer.reviews || [];
   const addresses = customer.addresses || [];
-  const payments = customer.payments || [];
+  // The backend doesn't expose a separate payments collection — each order
+  // carries its own payment info, so a payment "record" is derived from it.
+  const payments = orders.map((o) => ({
+    method: o.payment?.method,
+    amount: o.pricing?.grandTotal,
+    status: o.payment?.status,
+    createdAt: o.createdAt,
+    orderNumber: o.orderNumber,
+    orderId: o._id || o.id,
+  }));
 
   return (
     <div>
@@ -54,23 +69,71 @@ export default function CustomerDetails() {
           <Card padded={false}>
             <div className="px-5 pt-4"><Tabs tabs={TABS} active={tab} onChange={setTab} /></div>
             <div className="px-5 pb-5">
-              {tab === 'orders' && (orders.length ? <SimpleTable rows={orders} cols={[
-                ['orderNumber', 'Order #'], ['status', 'Status', (v) => <StatusBadge status={v} />], ['total', 'Total', (v) => formatCurrency(v)], ['createdAt', 'Date', formatDate],
-              ]} /> : <EmptyState title="No orders yet" />)}
-              {tab === 'wishlist' && (wishlist.length ? <SimpleTable rows={wishlist} cols={[['name', 'Product'], ['price', 'Price', (v) => formatCurrency(v)]]} /> : <EmptyState title="Wishlist is empty" />)}
-              {tab === 'reviews' && (reviews.length ? <SimpleTable rows={reviews} cols={[['productName', 'Product'], ['rating', 'Rating', (v) => `${v} ★`], ['comment', 'Comment']]} /> : <EmptyState title="No reviews written" />)}
+              {tab === 'orders' && (orders.length ? (
+                <SimpleTable
+                  rows={orders}
+                  onRowClick={(o) => navigate(`/orders/${o._id || o.id}`)}
+                  cols={[
+                    { label: 'Order #', render: (o) => `#${o.orderNumber || (o._id || o.id).slice(-6)}` },
+                    { label: 'Payment', render: (o) => <StatusBadge status={o.payment?.status || 'pending'} /> },
+                    { label: 'Status', render: (o) => <StatusBadge status={o.orderStatus || 'pending'} /> },
+                    { label: 'Total', render: (o) => formatCurrency(o.pricing?.grandTotal) },
+                    { label: 'Date', render: (o) => formatDate(o.createdAt) },
+                  ]}
+                />
+              ) : <EmptyState title="No orders yet" />)}
+
+              {tab === 'wishlist' && (wishlist.length ? (
+                <SimpleTable
+                  rows={wishlist}
+                  cols={[
+                    { label: 'Product', render: (p) => p.name },
+                    { label: 'Price', render: (p) => formatCurrency(p.price) },
+                  ]}
+                />
+              ) : <EmptyState title="Wishlist is empty" />)}
+
+              {tab === 'reviews' && (reviews.length ? (
+                <SimpleTable
+                  rows={reviews}
+                  cols={[
+                    { label: 'Product', render: (r) => r.productName },
+                    { label: 'Rating', render: (r) => `${r.rating ?? '—'} ★` },
+                    { label: 'Comment', render: (r) => r.comment || '—' },
+                  ]}
+                />
+              ) : <EmptyState title="No reviews written" />)}
+
               {tab === 'addresses' && (addresses.length ? (
                 <div className="grid grid-cols-2 gap-3">
                   {addresses.map((a, i) => (
-                    <div key={i} className="border border-border-soft rounded-md p-3 text-[13px]">
-                      {a.label && <Badge tone="neutral" className="mb-2">{a.label}</Badge>}
-                      <p>{a.line1}{a.line2 ? `, ${a.line2}` : ''}</p>
-                      <p className="text-ink-faint">{a.city}, {a.state} {a.pincode}</p>
+                    <div key={a._id || i} className="border border-border-soft rounded-md p-3 text-[13px]">
+                      <div className="flex items-center justify-between mb-2">
+                        {a.label && <Badge tone="neutral">{a.label}</Badge>}
+                        {a.isDefault && <Badge tone="brand">Default</Badge>}
+                      </div>
+                      {a.fullName && <p className="font-medium">{a.fullName}{a.company ? ` · ${a.company}` : ''}</p>}
+                      <p>{[a.line1, a.line2, a.landmark].filter(Boolean).join(', ')}</p>
+                      <p className="text-ink-faint">{[a.city, a.state, a.country, a.pincode].filter(Boolean).join(', ')}</p>
+                      {a.phone && <p className="text-ink-faint mt-1">{a.phone}</p>}
                     </div>
                   ))}
                 </div>
               ) : <EmptyState title="No saved addresses" />)}
-              {tab === 'payments' && (payments.length ? <SimpleTable rows={payments} cols={[['method', 'Method'], ['amount', 'Amount', (v) => formatCurrency(v)], ['status', 'Status', (v) => <StatusBadge status={v} />], ['createdAt', 'Date', formatDate]]} /> : <EmptyState title="No payment records" />)}
+
+              {tab === 'payments' && (payments.length ? (
+                <SimpleTable
+                  rows={payments}
+                  onRowClick={(p) => navigate(`/orders/${p.orderId}`)}
+                  cols={[
+                    { label: 'Order #', render: (p) => `#${p.orderNumber || p.orderId?.slice(-6)}` },
+                    { label: 'Method', render: (p) => p.method ? statusLabel(p.method) : '—' },
+                    { label: 'Amount', render: (p) => formatCurrency(p.amount) },
+                    { label: 'Status', render: (p) => <StatusBadge status={p.status || 'pending'} /> },
+                    { label: 'Date', render: (p) => formatDate(p.createdAt) },
+                  ]}
+                />
+              ) : <EmptyState title="No payment records" />)}
             </div>
           </Card>
         </div>
@@ -80,6 +143,7 @@ export default function CustomerDetails() {
             <div className="flex flex-col gap-2 text-[13px]">
               <Row k="Email" v={customer.email} />
               <Row k="Phone" v={customer.phone || '—'} />
+              <Row k="Type" v={customer.isGuest ? 'Guest' : 'Registered'} />
               <Row k="Joined" v={formatDate(customer.createdAt)} />
               <Row k="Status" v={<StatusBadge status={customer.status || 'active'} />} />
             </div>
@@ -90,15 +154,23 @@ export default function CustomerDetails() {
   );
 }
 
-function SimpleTable({ rows, cols }) {
+function SimpleTable({ rows, cols, onRowClick }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-[13px]">
-        <thead><tr className="bg-surface-muted text-left text-[11px] uppercase text-ink-muted">{cols.map(([, label]) => <th key={label} className="px-3 py-2.5">{label}</th>)}</tr></thead>
+        <thead>
+          <tr className="bg-surface-muted text-left text-[11px] uppercase text-ink-muted">
+            {cols.map((c) => <th key={c.label} className="px-3 py-2.5">{c.label}</th>)}
+          </tr>
+        </thead>
         <tbody>
           {rows.map((r, i) => (
-            <tr key={i} className="border-t border-border-soft">
-              {cols.map(([key, label, fmt]) => <td key={label} className="px-3 py-2.5">{fmt ? fmt(r[key]) : r[key] ?? '—'}</td>)}
+            <tr
+              key={i}
+              className={`border-t border-border-soft ${onRowClick ? 'cursor-pointer hover:bg-surface-muted' : ''}`}
+              onClick={onRowClick ? () => onRowClick(r) : undefined}
+            >
+              {cols.map((c) => <td key={c.label} className="px-3 py-2.5">{c.render(r) ?? '—'}</td>)}
             </tr>
           ))}
         </tbody>
@@ -106,7 +178,21 @@ function SimpleTable({ rows, cols }) {
     </div>
   );
 }
-function Row({ k, v }) { return <div className="flex justify-between border-b border-border-soft pb-2"><span className="text-ink-faint">{k}</span><span className="font-medium">{v}</span></div>; }
+
+function Row({ k, v }) {
+  return (
+    <div className="flex justify-between border-b border-border-soft pb-2">
+      <span className="text-ink-faint">{k}</span>
+      <span className="font-medium">{v}</span>
+    </div>
+  );
+}
+
 function MiniStat({ label, value }) {
-  return <div className="bg-surface border border-border-soft rounded-lg p-4 shadow-sm"><p className="text-[12px] text-ink-muted font-medium mb-1">{label}</p><p className="text-xl font-bold text-ink">{value}</p></div>;
+  return (
+    <div className="bg-surface border border-border-soft rounded-lg p-4 shadow-sm">
+      <p className="text-[12px] text-ink-muted font-medium mb-1">{label}</p>
+      <p className="text-xl font-bold text-ink">{value}</p>
+    </div>
+  );
 }
