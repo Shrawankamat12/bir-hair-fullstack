@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { FiPlay, FiChevronRight, FiChevronLeft, FiTruck, FiHeadphones, FiRefreshCw, FiShield, FiDroplet, FiClock, FiMoon, FiLock, FiGift, FiUsers, FiHelpCircle } from 'react-icons/fi';
+import { FiPlay, FiChevronRight, FiGift, FiClock, FiDroplet, FiUsers, FiHelpCircle } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import PhotoBlock from '../components/PhotoBlock';
 import CategoryCircle from '../components/CategoryCircle';
 import ProductCard from '../components/ProductCard';
 import CountdownTimer from '../components/CountdownTimer';
+import TrustBadges from '../components/TrustBadges';
 import Reveal from '../components/Reveal';
 import StarRating from '../components/StarRating';
 import { ProductGridSkeleton } from '../components/Skeletons';
@@ -13,6 +14,7 @@ import RecentlyViewed from '../components/RecentlyViewed';
 import QuickView from '../components/QuickView';
 import { useRecentlyViewedList } from '../hooks/useRecentlyViewed';
 import { rupee } from '../lib/format';
+import { resolveImageUrl } from '../lib/api';
 import {
   useCategories, useProductsByBadge, useProductsByFlag, useProducts, useCollections,
   useTestimonials, useBlogs, useSiteContent,
@@ -122,15 +124,23 @@ export default function Home() {
 
   const processSteps = sc?.processSteps?.length ? sc.processSteps : [];
   const gallery = sc?.factoryGallery || {};
-  const galleryImages = gallery.images?.length ? gallery.images : FALLBACK_FACTORY_GALLERY;
+  const galleryImages = gallery.images?.length
+    ? gallery.images.map((g) => ({ ...g, image: resolveImageUrl(g.image) }))
+    : FALLBACK_FACTORY_GALLERY;
   const certifications = sc?.certifications?.length ? sc.certifications : [
     'ISO 9001:2015 Certified Facility', '100% Cuticle-Aligned Human Hair', 'Ethically Sourced & Traceable', 'Export Compliance Verified',
   ];
   const exportCountries = sc?.exportCountries?.length ? sc.exportCountries : ['USA', 'UK', 'Nigeria', 'UAE', 'South Africa', 'Brazil', 'France', 'Kenya', 'Canada', 'Ghana', 'Jamaica', 'Germany'];
-  const beforeAfter = sc?.beforeAfter?.length ? sc.beforeAfter : FALLBACK_BEFORE_AFTER;
+  const beforeAfter = sc?.beforeAfter?.length
+    ? sc.beforeAfter.map((b) => ({ ...b, beforeImage: resolveImageUrl(b.beforeImage), afterImage: resolveImageUrl(b.afterImage) }))
+    : FALLBACK_BEFORE_AFTER;
   const instaHandle = sc?.instagram?.handle || '@birhairindiafactory';
-  const instaImages = sc?.instagram?.images?.length ? sc.instagram.images : FALLBACK_INSTAGRAM;
-  const videoImages = sc?.videoReviews?.length ? sc.videoReviews : FALLBACK_VIDEOS;
+  const instaImages = sc?.instagram?.images?.length
+    ? sc.instagram.images.map((img) => resolveImageUrl(img))
+    : FALLBACK_INSTAGRAM;
+  const videoImages = sc?.videoReviews?.length
+    ? sc.videoReviews.map((img) => resolveImageUrl(img))
+    : FALLBACK_VIDEOS;
   const coupon = sc?.couponBanner || {};
   const faqTeaser = sc?.faqTeaser || {};
   const faqItems = faqTeaser.items?.length ? faqTeaser.items : [
@@ -143,111 +153,516 @@ export default function Home() {
 
   return (
     <>
-      {/* HERO */}
-      <section className="hero">
-        <div className="hero-bg" />
-        <div className="container hero-inner">
-          <div className="hero-copy reveal">
-            <span className="eyebrow">{hero.eyebrow || 'Manufacturer · Exporter · Supplier — Est. 2014'}</span>
-            <h1 className="hero-title">
-              {hero.title || 'Pure Indian Remy Hair.'} <span className="gold-text">{hero.highlightText || 'Crafted for Royalty.'}</span>
-            </h1>
-            <p className="hero-sub">{hero.subtitle || 'Factory-direct 100% human hair, ethically sourced from India — trusted by exporters in 50+ countries since 2014.'}</p>
-            <div className="hero-ctas">
-              <Link to={hero.primaryCtaLink || '/shop'} className="btn btn-gold">{hero.primaryCtaText || 'Shop Now'}</Link>
-              <Link to={hero.secondaryCtaLink || '/about'} className="btn btn-outline on-light">{hero.secondaryCtaText || 'Explore Collection'}</Link>
-            </div>
-            <div className="hero-badges">
-              {heroBadges.map((b) => (
-                <span key={b} className="hero-badge glass">{b}</span>
-              ))}
-            </div>
-            <div className="hero-stats">
-              {heroStats.map((s) => (
-                <div key={s.label}><strong>{s.value}</strong><span>{s.label}</span></div>
-              ))}
-            </div>
-          </div>
-          <div className="hero-visual reveal" style={{ animationDelay: '150ms' }}>
-            <div className="hero-visual-ring" />
-            <PhotoBlock tone="gold" ratio="3/4" rounded={28} label="Featured" sub="Double-Drawn Body Wave" className="hero-visual-photo" src={hero.image || heroModel} alt="Model with pure Indian Remy hair" />
-            <div className="hero-visual-badge glass">
-              <StarRating value={hero.ratingValue ?? 4.9} /> <span>{hero.ratingLabel || '4.9 from 3,200+ buyers'}</span>
-            </div>
-            <div className="hero-india-badge">
-              <svg viewBox="0 0 120 120" className="hero-india-badge-svg" aria-hidden="true">
-                <defs>
-                  <radialGradient id="indiaBadgeFace" cx="34%" cy="28%" r="80%">
-                    <stop offset="0%" stopColor="#3d1128" />
-                    <stop offset="55%" stopColor="#2B0F1F" />
-                    <stop offset="100%" stopColor="#1a110d" />
-                  </radialGradient>
-                  <linearGradient id="indiaBadgeRing" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FFD4E8" />
-                    <stop offset="45%" stopColor="#F85D9B" />
-                    <stop offset="100%" stopColor="#C2185B" />
-                  </linearGradient>
-                  <linearGradient id="indiaBadgeMap" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FFD4E8" />
-                    <stop offset="55%" stopColor="#F7B9D3" />
-                    <stop offset="100%" stopColor="#F85D9B" />
-                  </linearGradient>
-                </defs>
-                <circle cx="60" cy="60" r="44" fill="url(#indiaBadgeRing)" />
-                <circle cx="60" cy="60" r="39" fill="url(#indiaBadgeFace)" />
-                <path
-                  d="M60 29 C 50 30, 42 34, 39 41 C 36 48, 40 54, 38 62 C 36 70, 33 75, 37 81 C 40 86, 46 85, 50 91 C 53 95, 56 100, 60 104 C 64 99, 67 95, 71 90 C 75 85, 81 85, 84 79 C 87 74, 83 69, 85 62 C 87 55, 91 49, 87 42 C 83 35, 74 31, 66 29 Z"
-                  fill="url(#indiaBadgeMap)"
-                />
-                <circle cx="73" cy="98" r="2" fill="url(#indiaBadgeMap)" />
-              </svg>
-              <span>Proudly<br />Made in India</span>
-            </div>
-          </div>
-        </div>
-      </section>
+    {/* ========================= HERO ========================= */}
+<section className="relative overflow-hidden bg-white pt-3">
+  {/* ================= HERO BACKGROUND ================= */}
+  <div className="absolute inset-x-3 top-3 bottom-0 rounded-[22px] bg-gradient-to-br from-[#fff9fb] via-[#fff0f5] to-[#ffd9e7] sm:inset-x-5 lg:inset-x-14 lg:rounded-[26px]" />
 
-      {/* TRUST ICON STRIP — matches the "100% Human Hair / Can Be Dyed / Long Lasting / Healthy Ends / Secure Payment" row under the hero in the reference layout */}
-      <section className="bg-pink-50 py-5">
-        <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-5 gap-4">
+  <div className="container relative z-10">
+    <div
+      className="
+        grid min-h-[500px] grid-cols-1 items-center
+        gap-2 px-5 pt-8
+        sm:px-8 sm:pt-10
+        lg:min-h-[535px]
+        lg:grid-cols-[1.02fr_0.98fr]
+        lg:px-14 lg:pt-7
+      "
+    >
+      {/* ================================================= */}
+      {/* LEFT CONTENT */}
+      {/* ================================================= */}
+      <div className="relative z-20 flex flex-col justify-center pb-8 lg:pb-10">
+
+        {/* Eyebrow */}
+        <div className="mb-4">
+          <span
+            className="
+              inline-flex items-center gap-2
+              rounded-full
+              border border-pink-200
+              bg-white/75
+              px-3 py-1.5
+              text-[9px] font-extrabold uppercase
+              tracking-[0.5px]
+              text-[#ed2165]
+              shadow-sm
+              backdrop-blur-sm
+              sm:px-4 sm:py-2 sm:text-[10px]
+            "
+          >
+            <span className="text-xs">✦</span>
+
+            {hero.eyebrow || "100% Virgin Human Hair"}
+
+            <span className="text-pink-300">→</span>
+          </span>
+        </div>
+
+        {/* Heading */}
+        <h1
+          className="
+            max-w-[650px]
+            font-serif
+            text-[39px]
+            font-bold
+            leading-[1.02]
+            tracking-[-1.5px]
+            text-[#17141a]
+            sm:text-[50px]
+            md:text-[58px]
+            lg:text-[61px]
+            xl:text-[64px]
+          "
+        >
+          {hero.title || "Luxury Hair"}
+
+          <br />
+
+          <span className="text-[#17141a]">
+            That{" "}
+          </span>
+
+          <span
+            className="
+              bg-gradient-to-r
+              from-[#ed2165]
+              via-[#f13f7d]
+              to-[#d91a5c]
+              bg-clip-text
+              text-transparent
+            "
+          >
+            {hero.highlightText || "Defines"}
+          </span>
+
+          <span className="text-[#17141a]"> You</span>
+        </h1>
+
+        {/* Subtitle */}
+        <p
+          className="
+            mt-4
+            max-w-[500px]
+            text-[13px]
+            leading-6
+            text-[#575057]
+            sm:text-[15px]
+            sm:leading-7
+          "
+        >
+          {hero.subtitle ||
+            "Premium quality hair extensions, wigs & more. Look beautiful. Feel confident."}
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link
+            to={hero.primaryCtaLink || "/shop"}
+            className="
+              inline-flex
+              min-h-[42px]
+              min-w-[112px]
+              items-center
+              justify-center
+              rounded-[7px]
+              bg-gradient-to-r
+              from-[#ed2165]
+              to-[#d9165b]
+              px-5
+              text-[11px]
+              font-bold
+              text-white
+              shadow-[0_8px_20px_rgba(226,36,103,0.22)]
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:shadow-[0_12px_25px_rgba(226,36,103,0.30)]
+            "
+          >
+            {hero.primaryCtaText || "Shop Now"}
+          </Link>
+
+          <Link
+            to={hero.secondaryCtaLink || "/about"}
+            className="
+              inline-flex
+              min-h-[42px]
+              min-w-[130px]
+              items-center
+              justify-center
+              rounded-[7px]
+              border
+              border-pink-100
+              bg-white
+              px-5
+              text-[11px]
+              font-bold
+              text-[#e22667]
+              shadow-[0_5px_15px_rgba(70,20,40,0.06)]
+              transition-all
+              duration-300
+              hover:-translate-y-0.5
+              hover:bg-[#fff8fa]
+            "
+          >
+            {hero.secondaryCtaText || "View Collections"}
+          </Link>
+        </div>
+
+        {/* ================= TRUST POINTS ================= */}
+        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
           {[
-            { icon: FiDroplet, title: '100% Human Hair', sub: 'No Synthetic Mix' },
-            { icon: FiRefreshCw, title: 'Can Be Dyed', sub: 'Bleached & Styled' },
-            { icon: FiClock, title: 'Long Lasting', sub: 'Durable & Soft' },
-            { icon: FiMoon, title: 'Healthy Ends', sub: 'Full & Thick Ends' },
-            { icon: FiLock, title: 'Secure Payment', sub: '100% Safe & Secure' },
-          ].map(({ icon: Icon, title, sub }) => (
-            <div className="flex items-center gap-2.5 text-sm" key={title}>
-              <Icon className="text-pink-600 text-xl shrink-0" />
-              <div>
-                <strong className="block text-sm text-gray-800">{title}</strong>
-                <span className="block text-xs text-gray-500">{sub}</span>
+            {
+              icon: "✓",
+              title: "Premium Quality",
+              sub: "100% Human Hair",
+            },
+            {
+              icon: "▣",
+              title: "Free Shipping",
+              sub: "On orders over $199",
+            },
+            {
+              icon: "↻",
+              title: "Easy Returns",
+              sub: "30 Days Return",
+            },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="flex items-center gap-2"
+            >
+              <div
+                className="
+                  flex h-8 w-8 shrink-0
+                  items-center justify-center
+                  rounded-full
+                  border border-pink-200
+                  bg-white
+                  text-[#ed2165]
+                  shadow-sm
+                "
+              >
+                <span className="text-xs font-black">
+                  {item.icon}
+                </span>
+              </div>
+
+              <div className="flex flex-col">
+                <strong className="text-[9px] font-bold text-[#272329] sm:text-[10px]">
+                  {item.title}
+                </strong>
+
+                <span className="text-[8px] text-[#777078] sm:text-[9px]">
+                  {item.sub}
+                </span>
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* PROMO STRIP — 3 cards: new customer / bundle deals / refer & earn (matches reference layout) */}
-      <Reveal as="section" className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
-          <div className="rounded-2xl bg-gradient-to-br from-pink-100 to-pink-50 p-6">
-            <span className="text-pink-600 text-xs font-bold uppercase tracking-wide">{coupon.eyebrow || 'New Customers'}</span>
-            <h3 className="text-2xl font-bold text-gray-900 mt-1">Get {coupon.discountText || '10%'} Off</h3>
-            <p className="text-sm text-gray-600 mt-2 mb-4">On your first order — use code <strong>{coupon.code || 'BIRGOLD10'}</strong></p>
-            <Link to={coupon.ctaLink || '/shop'} className="inline-block bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition">Shop Now</Link>
+      {/* ================================================= */}
+      {/* RIGHT IMAGE */}
+      {/* ================================================= */}
+      <div
+        className="
+          relative
+          flex
+          min-h-[390px]
+          items-end
+          justify-center
+          lg:min-h-[535px]
+        "
+      >
+        {/* Pink Circle */}
+        <div
+          className="
+            absolute
+            right-1/2
+            top-4
+            h-[330px]
+            w-[330px]
+            translate-x-1/2
+            rounded-full
+            bg-gradient-to-br
+            from-[#f8b4ca]
+            via-[#f796b7]
+            to-[#f36d9d]
+            sm:h-[400px]
+            sm:w-[400px]
+            lg:right-[-20px]
+            lg:top-[-5px]
+            lg:h-[510px]
+            lg:w-[510px]
+            lg:translate-x-0
+          "
+        />
+
+        {/* Decorative flowers / leaves */}
+        <div
+          className="
+            absolute
+            bottom-5
+            left-0
+            z-[1]
+            text-[75px]
+            opacity-70
+            sm:text-[95px]
+            lg:bottom-10
+            lg:left-[-10px]
+            lg:text-[110px]
+          "
+        >
+          🌿
+        </div>
+
+        <div
+          className="
+            absolute
+            right-0
+            top-8
+            z-[1]
+            text-[65px]
+            opacity-70
+            sm:text-[80px]
+            lg:right-[-5px]
+            lg:text-[95px]
+          "
+        >
+          🌸
+        </div>
+
+        {/* Model */}
+        <PhotoBlock
+          tone="gold"
+          ratio="3/4"
+          rounded={28}
+          label="Featured"
+          sub="Double-Drawn Body Wave"
+          className="
+            relative
+            z-10
+            h-[385px]
+            w-[275px]
+            overflow-hidden
+            !rounded-t-[145px]
+            !rounded-b-[10px]
+            bg-transparent
+            shadow-none
+
+            sm:h-[450px]
+            sm:w-[320px]
+            sm:!rounded-t-[170px]
+
+            lg:h-[530px]
+            lg:w-[390px]
+            lg:!rounded-t-[195px]
+            lg:!rounded-b-[14px]
+          "
+          src={resolveImageUrl(hero.image) || heroModel}
+          alt="Luxury hair model"
+        />
+
+        {/* Rating Card */}
+        <div
+          className="
+            absolute
+            right-0
+            top-[205px]
+            z-30
+            flex
+            items-center
+            gap-2
+            rounded-[10px]
+            border
+            border-black/5
+            bg-white
+            px-3
+            py-2.5
+            shadow-[0_10px_25px_rgba(55,20,35,0.14)]
+
+            sm:right-2
+            sm:top-[275px]
+            sm:px-4
+            sm:py-3
+
+            lg:right-[5px]
+            lg:top-[315px]
+          "
+        >
+          {/* Customer avatars */}
+          <div className="flex -space-x-2">
+            {[1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="
+                  flex
+                  h-7
+                  w-7
+                  items-center
+                  justify-center
+                  overflow-hidden
+                  rounded-full
+                  border-2
+                  border-white
+                  bg-[#f1b19b]
+                  text-[9px]
+                  font-bold
+                  text-white
+                  sm:h-8
+                  sm:w-8
+                "
+              >
+                👩🏽
+              </div>
+            ))}
           </div>
-          <div className="rounded-2xl bg-gradient-to-br from-rose-100 to-rose-50 p-6">
-            <span className="text-rose-600 text-xs font-bold uppercase tracking-wide">Bundle Deals</span>
-            <h3 className="text-2xl font-bold text-gray-900 mt-1">Save More</h3>
-            <p className="text-sm text-gray-600 mt-2 mb-4">When you buy more — bigger bundles unlock deeper pricing.</p>
-            <Link to="/shop" className="inline-block border border-pink-600 text-pink-600 hover:bg-pink-600 hover:text-white text-sm font-semibold px-5 py-2.5 rounded-full transition">Shop Bundles</Link>
+
+          <div className="flex flex-col">
+            <span className="text-[8px] font-bold text-[#302930] sm:text-[9px]">
+              Trusted by 50K+
+            </span>
+
+            <span className="text-[8px] text-[#81757c]">
+              Happy Customers
+            </span>
+
+            <div className="mt-0.5 text-[9px] tracking-[1px] text-[#ffae00]">
+              ★★★★★
+            </div>
           </div>
-          <div className="rounded-2xl bg-gradient-to-br from-amber-100 to-amber-50 p-6">
-            <span className="text-amber-700 text-xs font-bold uppercase tracking-wide flex items-center gap-1.5"><FiGift /> Refer & Earn</span>
-            <h3 className="text-2xl font-bold text-gray-900 mt-1">Get $20</h3>
-            <p className="text-sm text-gray-600 mt-2 mb-4">For every friend you refer to B.I.R Hair.</p>
-            <Link to="/referrals" className="inline-block border border-pink-600 text-pink-600 hover:bg-pink-600 hover:text-white text-sm font-semibold px-5 py-2.5 rounded-full transition">Learn More</Link>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{/* ========================================================= */}
+{/* TRUST / FEATURE STRIP */}
+{/* ========================================================= */}
+
+<div className="container relative z-20 px-3 pb-5 pt-3 sm:px-5 lg:px-14">
+  <div
+    className="
+      grid
+      grid-cols-1
+      overflow-hidden
+      rounded-[14px]
+      border
+      border-pink-100
+      bg-white
+      p-1
+      shadow-[0_8px_25px_rgba(55,20,35,0.06)]
+
+      sm:grid-cols-2
+
+      lg:grid-cols-5
+    "
+  >
+    {[
+      {
+        icon: "♨",
+        title: "100% Human Hair",
+        sub: "No Synthetic Mix",
+      },
+      {
+        icon: "✂",
+        title: "Can Be Dyed",
+        sub: "Bleached & Styled",
+      },
+      {
+        icon: "◷",
+        title: "Long Lasting",
+        sub: "Durable & Soft",
+      },
+      {
+        icon: "◒",
+        title: "Healthy Ends",
+        sub: "Full & Thick Ends",
+      },
+      {
+        icon: "▣",
+        title: "Secure Payment",
+        sub: "100% Safe & Secure",
+      },
+    ].map((item, index) => (
+      <div
+        key={item.title}
+        className={`
+          flex
+          min-h-[60px]
+          items-center
+          gap-3
+          px-4
+          py-2.5
+
+          lg:justify-center
+          lg:px-3
+
+          ${
+            index !== 4
+              ? "border-b border-pink-100 lg:border-b-0 lg:border-r"
+              : ""
+          }
+        `}
+      >
+        {/* Icon */}
+        <div
+          className="
+            flex
+            h-9
+            w-9
+            shrink-0
+            items-center
+            justify-center
+            rounded-full
+            bg-[#fff1f6]
+            text-[#e22667]
+          "
+        >
+          <span className="text-base font-bold">
+            {item.icon}
+          </span>
+        </div>
+
+        {/* Text */}
+        <div className="flex flex-col gap-0.5">
+          <strong className="text-[9px] font-bold text-[#242025] sm:text-[10px]">
+            {item.title}
+          </strong>
+
+          <span className="text-[8px] text-[#777078] sm:text-[9px]">
+            {item.sub}
+          </span>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+      {/* PROMO STRIP — 3 cards: new customer / bundle deals / refer & earn, using the site's existing .promo-strip / .promo-card styles */}
+      <Reveal as="section" className="container">
+        <div className="promo-strip">
+          <div className="promo-card promo-card--gold">
+            <span className="promo-card-tag">{coupon.eyebrow || 'New Customers'}</span>
+            <h3>Get {coupon.discountText || '10%'} Off</h3>
+            <p>On your first order — use code <strong>{coupon.code || 'BIRGOLD10'}</strong></p>
+            <Link to={coupon.ctaLink || '/shop'} className="btn btn-gold btn-sm">Shop Now</Link>
+          </div>
+          <div className="promo-card promo-card--rose">
+            <span className="promo-card-tag">Bundle Deals</span>
+            <h3>Save More</h3>
+            <p>When you buy more — bigger bundles unlock deeper pricing.</p>
+            <Link to="/shop" className="btn btn-outline on-light btn-sm">Shop Bundles</Link>
+          </div>
+          <div className="promo-card promo-card--beige">
+            <span className="promo-card-tag">Refer &amp; Earn</span>
+            <h3>Get $20</h3>
+            <p>For every friend you refer to B.I.R Hair.</p>
+            <Link to="/referrals" className="btn btn-outline on-light btn-sm">Learn More</Link>
           </div>
         </div>
       </Reveal>
@@ -292,40 +707,30 @@ export default function Home() {
         <ProductRow eyebrow="Customer Favourites" title="Best Sellers" list={bestSellers} onQuickView={setQuickViewProduct} scroller />
       )}
 
-      {/* SECONDARY TRUST STRIP — worldwide shipping / 24-7 support / easy returns / secure checkout, matches reference layout's second icon band */}
-      <section className="bg-white border-y border-gray-100 py-5">
-        <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { icon: FiTruck, title: 'Worldwide Shipping', sub: 'Fast & Reliable Delivery' },
-            { icon: FiHeadphones, title: '24/7 Customer Support', sub: "We're Here to Help" },
-            { icon: FiRefreshCw, title: '30 Days Easy Returns', sub: 'Hassle Free Returns' },
-            { icon: FiShield, title: 'Secure Checkout', sub: 'SSL Encrypted Payment' },
-          ].map(({ icon: Icon, title, sub }) => (
-            <div className="flex items-center gap-2.5 text-sm" key={title}>
-              <Icon className="text-pink-600 text-xl shrink-0" />
-              <div>
-                <strong className="block text-sm text-gray-800">{title}</strong>
-                <span className="block text-xs text-gray-500">{sub}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* SECONDARY TRUST STRIP — worldwide shipping / support / returns / secure checkout */}
+      <div className="container" style={{ marginTop: 8 }}>
+        <TrustBadges items={[
+          { icon: 'globe', title: 'Worldwide Shipping', sub: 'Fast & Reliable Delivery' },
+          { icon: 'shield', title: '24/7 Customer Support', sub: "We're Here to Help" },
+          { icon: 'refresh', title: '30 Days Easy Returns', sub: 'Hassle Free Returns' },
+          { icon: 'lock', title: 'Secure Checkout', sub: 'SSL Encrypted Payment' },
+        ]} />
+      </div>
 
-      {/* NEW ARRIVALS + FLASH SALE — 2-column split matching reference layout (product grid left, countdown card right) */}
+      {/* NEW ARRIVALS + FLASH SALE — side-by-side split, matching the reference layout exactly */}
       {(sectionEnabled('newArrivals') || sectionEnabled('flashSale')) && (
         <Reveal as="section" className="section">
-          <div className="container mx-auto px-4 grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-6 items-start">
+          <div className="container hp-split-2-1">
             {sectionEnabled('newArrivals') && (
               <div>
-                <div className="flex items-center justify-between mb-4">
+                <div className="section-head row" style={{ marginBottom: 24 }}>
                   <div>
                     <span className="eyebrow">Just Landed</span>
                     <h2 className="section-title">New Arrivals</h2>
                   </div>
-                  <Link to="/shop" className="border border-pink-600 text-pink-600 hover:bg-pink-600 hover:text-white text-sm font-semibold px-4 py-2 rounded-full transition">View All</Link>
+                  <Link to="/shop" className="btn btn-outline on-light btn-sm">View All</Link>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
                   {newArrivals.slice(0, 4).map((p) => (
                     <ProductCard product={p} key={p.id} onQuickView={setQuickViewProduct} />
                   ))}
@@ -333,23 +738,23 @@ export default function Home() {
               </div>
             )}
             {sectionEnabled('flashSale') && dealOfDay && (
-              <div className="rounded-2xl bg-pink-950 text-white p-6">
-                <span className="font-bold text-amber-200">⚡ Flash Sale</span>
-                <p className="text-white/70 text-sm mt-1 mb-3.5">Limited Time Offer</p>
+              <div className="card" style={{ padding: 24, background: 'var(--espresso)', color: 'var(--cream)' }}>
+                <span className="eyebrow" style={{ color: 'var(--champagne)' }}>⚡ Flash Sale</span>
+                <p style={{ fontSize: '0.82rem', opacity: 0.65, margin: '4px 0 16px' }}>Limited Time Offer</p>
                 <CountdownTimer hours={8} endsAt={dealOfDay.flashSaleEndsAt} />
-                <div className="flex items-center gap-3 mt-4">
-                  <div className="w-20 shrink-0">
-                    <PhotoBlock tone="gold" ratio="1/1" rounded={16} src={dealOfDay.image || dealOfDayImg} alt={dealOfDay.name} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 20 }}>
+                  <div style={{ width: 84, flexShrink: 0 }}>
+                    <PhotoBlock tone="gold" ratio="1/1" rounded={14} src={resolveImageUrl(dealOfDay.image) || dealOfDayImg} alt={dealOfDay.name} />
                   </div>
                   <div>
-                    <h4 className="text-sm mb-1.5">{dealOfDay.name}</h4>
-                    <div className="flex items-center gap-2">
-                      <span className="line-through text-white/50 text-sm">{rupee(dealOfDay.mrp)}</span>
-                      <span className="text-amber-200 text-lg font-bold">{rupee(dealOfDay.price)}</span>
+                    <h4 style={{ fontSize: '0.9rem', marginBottom: 6, color: 'var(--cream)' }}>{dealOfDay.name}</h4>
+                    <div className="deal-price">
+                      <span className="price-strike" style={{ color: 'rgba(255,249,252,0.5)' }}>{rupee(dealOfDay.mrp)}</span>
+                      <span className="price-now" style={{ color: 'var(--champagne)' }}>{rupee(dealOfDay.price)}</span>
                     </div>
                   </div>
                 </div>
-                <Link to={`/product/${dealOfDay.id}`} className="block text-center bg-amber-300 hover:bg-amber-400 text-pink-950 font-semibold rounded-full py-2.5 mt-4 transition">Shop Now</Link>
+                <Link to={`/product/${dealOfDay.id}`} className="btn btn-gold" style={{ width: '100%', marginTop: 20 }}>Shop Now</Link>
               </div>
             )}
           </div>
@@ -371,25 +776,19 @@ export default function Home() {
         <ProductRow eyebrow="Editor's Pick" title="Featured Products" list={featuredProducts} onQuickView={setQuickViewProduct} scroller />
       )}
 
-      {/* SHOP BY LENGTH — pill row, matches reference layout */}
-      <Reveal as="section" className="section">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
+      {/* SHOP BY LENGTH — pill row using the site's existing .cat-tag pill style */}
+      <Reveal as="section" className="section section--tight-top">
+        <div className="container">
+          <div className="section-head row">
             <div>
               <span className="eyebrow">Find Your Fit</span>
               <h2 className="section-title">Shop By Length</h2>
             </div>
-            <Link to="/shop" className="border border-pink-600 text-pink-600 hover:bg-pink-600 hover:text-white text-sm font-semibold px-4 py-2 rounded-full transition">View All</Link>
+            <Link to="/shop" className="btn btn-outline on-light btn-sm">View All</Link>
           </div>
-          <div className="flex flex-wrap gap-2.5">
+          <div className="cat-tags" style={{ justifyContent: 'flex-start' }}>
             {HAIR_LENGTHS.map((len) => (
-              <Link
-                to={`/shop?length=${encodeURIComponent(len)}`}
-                key={len}
-                className="border border-pink-600 text-pink-600 hover:bg-pink-600 hover:text-white text-sm font-semibold rounded-full px-4.5 py-2.5 transition"
-              >
-                {len}
-              </Link>
+              <Link to={`/shop?length=${encodeURIComponent(len)}`} key={len} className="cat-tag">{len}</Link>
             ))}
           </div>
         </div>
@@ -406,7 +805,7 @@ export default function Home() {
             <div className="gallery-grid">
               {collections.map((c, i) => (
                 <Link to={`/shop?collection=${c.slug || c.id}`} key={c.id}>
-                  <PhotoBlock tone={['espresso', 'brown', 'gold', 'beige', 'cream', 'brown'][i % 6]} ratio="1/1" rounded={16} label={c.name} src={c.image} alt={c.name} />
+                  <PhotoBlock tone={['espresso', 'brown', 'gold', 'beige', 'cream', 'brown'][i % 6]} ratio="1/1" rounded={16} label={c.name} src={resolveImageUrl(c.image)} alt={c.name} />
                 </Link>
               ))}
             </div>
@@ -434,32 +833,23 @@ export default function Home() {
         </div>
       </Reveal>
 
-      {/* WHY CHOOSE US + BEFORE/AFTER — 2-column split, matches reference layout */}
+      {/* WHY CHOOSE US + BEFORE & AFTER — side-by-side, matching the reference layout */}
       <Reveal as="section" className="section why-section">
-        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
-          <div>
-            <span className="eyebrow">{why.eyebrow || 'Why Choose B.I.R Hair?'}</span>
-            <h2 className="section-title">{why.title || 'Factory-direct, without the compromises'}</h2>
-            <ul className="list-none p-0 mt-4.5 flex flex-col gap-3.5">
+        <div className="container hp-split-1-1">
+          <div className="card" style={{ padding: 30 }}>
+            <span className="eyebrow">{why.eyebrow || 'Why B.I.R Hair India Factory'}</span>
+            <h2 className="section-title" style={{ fontSize: '1.9rem', marginTop: 6, marginBottom: 18 }}>{why.title || 'Factory-direct, without the compromises'}</h2>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 20 }}>
               {whyItems.map((item) => (
-                <li className="flex flex-col gap-0.5" key={item.title}>
-                  <strong className="before:content-['✓_'] before:text-pink-600">{item.title}</strong>
-                  <span className="text-sm text-gray-500 ml-4.5">{item.description}</span>
+                <li key={item.title} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <span style={{ color: 'var(--gold)', fontWeight: 800, lineHeight: 1.5 }}>✓</span>
+                  <span><strong style={{ display: 'block', fontSize: '0.92rem' }}>{item.title}</strong><span style={{ fontSize: '0.82rem', color: 'rgba(31,31,31,0.6)' }}>{item.description}</span></span>
                 </li>
               ))}
             </ul>
-            <Link to="/about" className="inline-block bg-pink-600 hover:bg-pink-700 text-white font-semibold px-6 py-3 rounded-full mt-4.5 transition">Learn More</Link>
+            <Link to="/about" className="btn btn-gold btn-sm">Learn More</Link>
           </div>
-          <div>
-            <span className="eyebrow">Real Transformations</span>
-            <h2 className="section-title">Before &amp; After</h2>
-            {beforeAfter.slice(0, 1).map((b) => (
-              <div className="grid grid-cols-2 gap-3 mt-4" key={b.title}>
-                <PhotoBlock tone="beige" ratio="4/5" rounded={16} label="Before" strands={false} src={b.beforeImage} alt={`${b.title} — before`} />
-                <PhotoBlock tone="gold" ratio="4/5" rounded={16} label="After" strands={false} src={b.afterImage} alt={`${b.title} — after`} />
-              </div>
-            ))}
-          </div>
+          <BeforeAfterCard items={beforeAfter} />
         </div>
       </Reveal>
 
@@ -549,13 +939,13 @@ export default function Home() {
         </Reveal>
       )}
 
-      {/* FULL BEFORE/AFTER GRID */}
-      {beforeAfter.length > 1 && (
+      {/* BEFORE / AFTER GRID */}
+      {beforeAfter.length > 0 && (
         <Reveal as="section" className="section">
           <div className="container">
             <div className="section-head">
-              <span className="eyebrow">More Transformations</span>
-              <h2 className="section-title">Before &amp; After Gallery</h2>
+              <span className="eyebrow">Real Transformations</span>
+              <h2 className="section-title">Before &amp; After</h2>
             </div>
             <div className="ba-grid">
               {beforeAfter.map((b) => (
@@ -619,7 +1009,7 @@ export default function Home() {
             <div className="blog-row">
               {blogs.slice(0, 3).map((b) => (
                 <Link to={`/journal/${b.id}`} className="blog-card card" key={b.id}>
-                  <PhotoBlock tone="beige" ratio="16/10" rounded={0} label={b.cat} src={b.img} alt={b.title} />
+                  <PhotoBlock tone="beige" ratio="16/10" rounded={0} label={b.cat} src={resolveImageUrl(b.img)} alt={b.title} />
                   <div className="blog-card-body">
                     <span className="eyebrow">{b.date}</span>
                     <h4>{b.title}</h4>
@@ -631,22 +1021,22 @@ export default function Home() {
         </Reveal>
       )}
 
-      {/* FAQ — 4-item grid, matches reference layout (not just a teaser link) */}
-      <Reveal as="section" className="section">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-4">
+      {/* FAQ — 4-item preview grid, using the site's .card + brand colors */}
+      <Reveal as="section" className="section section--tight-top">
+        <div className="container">
+          <div className="section-head row">
             <div>
               <span className="eyebrow">{faqTeaser.eyebrow || 'Have Questions?'}</span>
               <h2 className="section-title">{faqTeaser.title || 'Frequently Asked Questions'}</h2>
             </div>
-            <Link to="/faq" className="border border-pink-600 text-pink-600 hover:bg-pink-600 hover:text-white text-sm font-semibold px-4 py-2 rounded-full transition">View All FAQs</Link>
+            <Link to="/faq" className="btn btn-outline on-light btn-sm">View All FAQs</Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {faqItems.map((f) => (
-              <Link to="/faq" className="block card p-5 hover:shadow-md transition" key={f.q}>
-                <FiHelpCircle className="text-pink-600 text-2xl mb-2.5" />
-                <h4 className="text-sm font-semibold mb-1.5 text-gray-800">{f.q}</h4>
-                <p className="text-xs text-gray-500">{f.a}</p>
+              <Link to="/faq" className="card" style={{ display: 'block', padding: 22 }} key={f.q}>
+                <FiHelpCircle className="text-gold" style={{ fontSize: '1.6rem', marginBottom: 12 }} />
+                <h4 style={{ fontSize: '0.95rem', marginBottom: 6 }}>{f.q}</h4>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(31,31,31,0.62)' }}>{f.a}</p>
               </Link>
             ))}
           </div>
@@ -657,18 +1047,18 @@ export default function Home() {
 
       <QuickView product={quickViewProduct} onClose={() => setQuickViewProduct(null)} />
 
-      {/* NEWSLETTER / VIP LIST — matches reference layout's "Join Our VIP List" banner */}
+      {/* NEWSLETTER / VIP LIST */}
       <Reveal as="section" className="newsletter-section">
         <div className="container newsletter-inner">
           <span className="eyebrow" style={{ color: 'var(--champagne)' }}>{newsletterSection.eyebrow || 'Join Our VIP List'}</span>
           <h2 className="section-title" style={{ color: 'var(--cream)' }}>{newsletterSection.title || 'Join the B.I.R Hair Circle'}</h2>
           <p style={{ color: 'rgba(255, 249, 252,0.7)', marginBottom: 18 }}>{newsletterSection.description || 'Get exclusive offers, new arrivals & beauty tips — straight to your inbox.'}</p>
           <NewsletterForm />
-          <div className="flex flex-wrap gap-5 justify-center mt-5">
-            <span className="flex items-center gap-1.5 text-sm text-white/85"><FiGift /> Exclusive Discounts</span>
-            <span className="flex items-center gap-1.5 text-sm text-white/85"><FiClock /> New Arrivals</span>
-            <span className="flex items-center gap-1.5 text-sm text-white/85"><FiDroplet /> Beauty Tips</span>
-            <span className="flex items-center gap-1.5 text-sm text-white/85"><FiUsers /> Giveaways</span>
+          <div className="flex flex-wrap gap-5 justify-center mt-5" style={{ color: 'rgba(255,249,252,0.8)' }}>
+            <span className="flex items-center gap-1.5 text-sm"><FiGift /> Exclusive Discounts</span>
+            <span className="flex items-center gap-1.5 text-sm"><FiClock /> New Arrivals</span>
+            <span className="flex items-center gap-1.5 text-sm"><FiDroplet /> Beauty Tips</span>
+            <span className="flex items-center gap-1.5 text-sm"><FiUsers /> Giveaways</span>
           </div>
         </div>
       </Reveal>
@@ -693,5 +1083,42 @@ function ProductRow({ eyebrow, title, list, onQuickView, scroller }) {
         </div>
       </div>
     </Reveal>
+  );
+}
+
+function BeforeAfterCard({ items }) {
+  const [i, setI] = useState(0);
+  if (!items.length) return null;
+  const b = items[i % items.length];
+  return (
+    <div>
+      <span className="eyebrow">Real Transformations</span>
+      <h2 className="section-title" style={{ fontSize: '1.9rem', marginTop: 6, marginBottom: 18 }}>Before &amp; After</h2>
+      <div style={{ position: 'relative' }}>
+        <div className="ba-split" style={{ borderRadius: 20 }}>
+          <PhotoBlock tone="beige" ratio="4/5" rounded={0} label="Before" strands={false} src={b.beforeImage} alt={`${b.title} — before`} />
+          <PhotoBlock tone="gold" ratio="4/5" rounded={0} label="After" strands={false} src={b.afterImage} alt={`${b.title} — after`} />
+        </div>
+        {items.length > 1 && (
+          <button
+            type="button"
+            onClick={() => setI((v) => (v + 1) % items.length)}
+            aria-label="Show next transformation"
+            style={{
+              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
+              width: 44, height: 44, borderRadius: '50%', border: 'none',
+              background: 'var(--gold-grad-rich)', color: '#fff', display: 'flex',
+              alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-gold)', cursor: 'pointer',
+            }}
+          >
+            <FiChevronRight />
+          </button>
+        )}
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <h4 style={{ fontSize: '0.95rem' }}>{b.title}</h4>
+        <span className="ba-tag">{b.tag}</span>
+      </div>
+    </div>
   );
 }

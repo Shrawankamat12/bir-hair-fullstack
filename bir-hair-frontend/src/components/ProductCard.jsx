@@ -4,6 +4,7 @@ import { FiHeart, FiEye } from 'react-icons/fi';
 import PhotoBlock from './PhotoBlock';
 import StarRating from './StarRating';
 import { rupee } from '../lib/format';
+import { resolveImageUrl } from '../lib/api';
 import { useStore } from '../context/StoreContext';
 import { useCompare } from '../context/CompareContext';
 
@@ -12,6 +13,7 @@ export default function ProductCard({ product, style, onQuickView }) {
   const { toggleCompare, isComparing } = useCompare();
   const wished = isWishlisted(product.id);
   const comparing = isComparing(product.id);
+  const imageUrl = resolveImageUrl(product.image);
 
   return (
     <motion.div
@@ -21,7 +23,7 @@ export default function ProductCard({ product, style, onQuickView }) {
       transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
     >
       <Link to={`/product/${product.id}`} className="pcard-media">
-        <PhotoBlock tone={product.tone} ratio="4/5" rounded={20} src={product.image} alt={product.name} />
+        <PhotoBlock tone={product.tone} ratio="4/5" rounded={20} src={imageUrl} alt={product.name} />
 
         <div className="pcard-badges">
           {product.badge && <span className={`badge badge-${product.badge.toLowerCase().replace(/[^a-z]/g, '')}`}>{product.badge}</span>}
