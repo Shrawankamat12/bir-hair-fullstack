@@ -2620,3 +2620,13 @@
   .shop-toolbar{ justify-content:space-between; }
   .shop-count-label{ order:3; width:100%; text-align:left; font-size:0.78rem; }
 }
+
+/* -----------------------------------------------------------------
+   Homepage 2-column split sections (New Arrivals+Flash Sale,
+   Why Choose Us+Before/After) — added to match the approved reference layout.
+----------------------------------------------------------------- */
+.hp-split-2-1{ display:grid; grid-template-columns:2fr 1fr; gap:28px; align-items:start; }
+.hp-split-1-1{ display:grid; grid-template-columns:1fr 1fr; gap:32px; align-items:start; }
+@media (max-width:900px){
+  .hp-split-2-1, .hp-split-1-1{ grid-template-columns:1fr; }
+}
