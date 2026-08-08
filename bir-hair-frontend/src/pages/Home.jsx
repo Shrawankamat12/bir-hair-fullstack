@@ -153,10 +153,13 @@ export default function Home() {
 
   return (
     <>
-    {/* ========================= HERO ========================= */}
+  {/* ========================= HERO ========================= */}
 <section className="relative overflow-hidden bg-white pt-3">
   {/* ================= HERO BACKGROUND ================= */}
   <div className="absolute inset-x-3 top-3 bottom-0 rounded-[22px] bg-gradient-to-br from-[#fff9fb] via-[#fff0f5] to-[#ffd9e7] sm:inset-x-5 lg:inset-x-14 lg:rounded-[26px]" />
+
+  {/* Soft ambient glow, top-right */}
+  <div className="absolute right-0 top-0 h-[300px] w-[300px] rounded-full bg-[#ed2165]/10 blur-[80px] lg:h-[420px] lg:w-[420px]" />
 
   <div className="container relative z-10">
     <div
@@ -164,7 +167,7 @@ export default function Home() {
         grid min-h-[500px] grid-cols-1 items-center
         gap-2 px-5 pt-8
         sm:px-8 sm:pt-10
-        lg:min-h-[535px]
+        lg:min-h-[560px]
         lg:grid-cols-[1.02fr_0.98fr]
         lg:px-14 lg:pt-7
       "
@@ -175,18 +178,18 @@ export default function Home() {
       <div className="relative z-20 flex flex-col justify-center pb-8 lg:pb-10">
 
         {/* Eyebrow */}
-        <div className="mb-4">
+        <div className="mb-5">
           <span
             className="
               inline-flex items-center gap-2
               rounded-full
               border border-pink-200
-              bg-white/75
+              bg-white/80
               px-3 py-1.5
               text-[9px] font-extrabold uppercase
               tracking-[0.5px]
               text-[#ed2165]
-              shadow-sm
+              shadow-[0_4px_14px_rgba(226,36,103,0.10)]
               backdrop-blur-sm
               sm:px-4 sm:py-2 sm:text-[10px]
             "
@@ -206,7 +209,7 @@ export default function Home() {
             font-serif
             text-[39px]
             font-bold
-            leading-[1.02]
+            leading-[1.04]
             tracking-[-1.5px]
             text-[#17141a]
             sm:text-[50px]
@@ -225,6 +228,7 @@ export default function Home() {
 
           <span
             className="
+              relative
               bg-gradient-to-r
               from-[#ed2165]
               via-[#f13f7d]
@@ -256,46 +260,49 @@ export default function Home() {
         </p>
 
         {/* CTA Buttons */}
-        <div className="mt-5 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link
             to={hero.primaryCtaLink || "/shop"}
             className="
+              group
               inline-flex
-              min-h-[42px]
+              min-h-[44px]
               min-w-[112px]
               items-center
               justify-center
-              rounded-[7px]
+              gap-1.5
+              rounded-[8px]
               bg-gradient-to-r
               from-[#ed2165]
               to-[#d9165b]
-              px-5
+              px-6
               text-[11px]
               font-bold
               text-white
-              shadow-[0_8px_20px_rgba(226,36,103,0.22)]
+              shadow-[0_10px_24px_rgba(226,36,103,0.28)]
               transition-all
               duration-300
               hover:-translate-y-0.5
-              hover:shadow-[0_12px_25px_rgba(226,36,103,0.30)]
+              hover:shadow-[0_14px_28px_rgba(226,36,103,0.36)]
             "
           >
             {hero.primaryCtaText || "Shop Now"}
+            <span className="transition-transform duration-300 group-hover:translate-x-0.5">→</span>
           </Link>
 
           <Link
             to={hero.secondaryCtaLink || "/about"}
             className="
               inline-flex
-              min-h-[42px]
+              min-h-[44px]
               min-w-[130px]
               items-center
               justify-center
-              rounded-[7px]
+              rounded-[8px]
               border
-              border-pink-100
+              border-pink-200
               bg-white
-              px-5
+              px-6
               text-[11px]
               font-bold
               text-[#e22667]
@@ -303,6 +310,7 @@ export default function Home() {
               transition-all
               duration-300
               hover:-translate-y-0.5
+              hover:border-pink-300
               hover:bg-[#fff8fa]
             "
           >
@@ -311,7 +319,7 @@ export default function Home() {
         </div>
 
         {/* ================= TRUST POINTS ================= */}
-        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
+        <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3">
           {[
             {
               icon: "✓",
@@ -342,6 +350,9 @@ export default function Home() {
                   bg-white
                   text-[#ed2165]
                   shadow-sm
+                  transition-transform
+                  duration-300
+                  hover:-translate-y-0.5
                 "
               >
                 <span className="text-xs font-black">
@@ -363,135 +374,201 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ================================================= */}
-      {/* RIGHT IMAGE */}
-      {/* ================================================= */}
-      <div
-        className="
-          relative
-          flex
-          min-h-[390px]
-          items-end
-          justify-center
-          lg:min-h-[535px]
-        "
-      >
-        {/* Pink Circle */}
+ {/* ================================================= */}
+{/* RIGHT IMAGE */}
+{/* ================================================= */}
+
+<div
+  className="
+    relative
+    flex
+    min-h-[390px]
+    items-end
+    justify-center
+    lg:min-h-[560px]
+  "
+>
+  {/* ================= PINK CIRCLE ================= */}
+  <div
+    className="
+      absolute
+      right-1/2
+      top-8
+      h-[350px]
+      w-[350px]
+      translate-x-1/2
+      rounded-full
+      bg-gradient-to-br
+      from-[#f8b4ca]
+      via-[#f58bb1]
+      to-[#ef6c9d]
+      shadow-[0_30px_60px_-20px_rgba(226,36,103,0.28)]
+
+      sm:top-4
+      sm:h-[420px]
+      sm:w-[420px]
+
+      lg:right-[-15px]
+      lg:top-[-5px]
+      lg:h-[520px]
+      lg:w-[520px]
+      lg:translate-x-0
+    "
+  />
+
+  {/* ================= DECORATIVE LEAVES ================= */}
+  <div
+    className="
+      absolute
+      bottom-3
+      left-0
+      z-[2]
+      text-[75px]
+      opacity-80
+
+      sm:text-[90px]
+
+      lg:bottom-8
+      lg:left-[-15px]
+      lg:text-[105px]
+    "
+  >
+    🌿
+  </div>
+
+  {/* ================= FLOWER ================= */}
+  <div
+    className="
+      absolute
+      right-0
+      top-8
+      z-[2]
+      text-[60px]
+      opacity-75
+
+      sm:text-[75px]
+
+      lg:right-[-5px]
+      lg:top-[55px]
+      lg:text-[90px]
+    "
+  >
+    🌸
+  </div>
+
+{/* ================= MODEL ================= */}
+<div
+  className="
+    absolute
+    bottom-0
+    left-1/2
+    z-10
+    h-[380px]
+    w-[300px]
+    -translate-x-1/2
+    overflow-visible
+
+    sm:h-[440px]
+    sm:w-[340px]
+
+    lg:bottom-0
+    lg:left-auto
+    lg:right-[35px]
+    lg:h-[500px]
+    lg:w-[400px]
+    lg:translate-x-0
+  "
+>
+  <img
+    src={resolveImageUrl(hero.image) || heroModel}
+    alt="Luxury hair model"
+    className="
+      absolute
+      bottom-25
+      left-1/2
+      h-full
+      w-auto
+      max-w-none
+      -translate-x-1/2
+      object-contain
+      object-bottom
+    "
+  />
+</div>
+
+  {/* ================= RATING CARD ================= */}
+  <div
+    className="
+      absolute
+      right-[-5px]
+      top-[205px]
+      z-30
+      flex
+      items-center
+      gap-2
+      rounded-[12px]
+      border
+      border-black/5
+      bg-white
+      px-3
+      py-2.5
+      shadow-[0_10px_25px_rgba(55,20,35,0.14)]
+      transition-transform
+      duration-300
+      hover:-translate-y-1
+
+      sm:right-0
+      sm:top-[260px]
+      sm:px-4
+      sm:py-3
+
+      lg:right-[-5px]
+      lg:top-[330px]
+    "
+  >
+
+    
+    {/* Customer avatars */}
+    <div className="flex -space-x-2">
+      {[1, 2, 3].map((item) => (
         <div
+          key={item}
           className="
-            absolute
-            right-1/2
-            top-4
-            h-[330px]
-            w-[330px]
-            translate-x-1/2
-            rounded-full
-            bg-gradient-to-br
-            from-[#f8b4ca]
-            via-[#f796b7]
-            to-[#f36d9d]
-            sm:h-[400px]
-            sm:w-[400px]
-            lg:right-[-20px]
-            lg:top-[-5px]
-            lg:h-[510px]
-            lg:w-[510px]
-            lg:translate-x-0
-          "
-        />
-
-        {/* Decorative flowers / leaves */}
-        <div
-          className="
-            absolute
-            bottom-5
-            left-0
-            z-[1]
-            text-[75px]
-            opacity-70
-            sm:text-[95px]
-            lg:bottom-10
-            lg:left-[-10px]
-            lg:text-[110px]
-          "
-        >
-          🌿
-        </div>
-
-        <div
-          className="
-            absolute
-            right-0
-            top-8
-            z-[1]
-            text-[65px]
-            opacity-70
-            sm:text-[80px]
-            lg:right-[-5px]
-            lg:text-[95px]
-          "
-        >
-          🌸
-        </div>
-
-        {/* Model */}
-        <PhotoBlock
-          tone="gold"
-          ratio="3/4"
-          rounded={28}
-          label="Featured"
-          sub="Double-Drawn Body Wave"
-          className="
-            relative
-            z-10
-            h-[385px]
-            w-[275px]
-            overflow-hidden
-            !rounded-t-[145px]
-            !rounded-b-[10px]
-            bg-transparent
-            shadow-none
-
-            sm:h-[450px]
-            sm:w-[320px]
-            sm:!rounded-t-[170px]
-
-            lg:h-[530px]
-            lg:w-[390px]
-            lg:!rounded-t-[195px]
-            lg:!rounded-b-[14px]
-          "
-          src={resolveImageUrl(hero.image) || heroModel}
-          alt="Luxury hair model"
-        />
-
-        {/* Rating Card */}
-        <div
-          className="
-            absolute
-            right-0
-            top-[205px]
-            z-30
             flex
+            h-8
+            w-8
             items-center
-            gap-2
-            rounded-[10px]
-            border
-            border-black/5
-            bg-white
-            px-3
-            py-2.5
-            shadow-[0_10px_25px_rgba(55,20,35,0.14)]
-
-            sm:right-2
-            sm:top-[275px]
-            sm:px-4
-            sm:py-3
-
-            lg:right-[5px]
-            lg:top-[315px]
+            justify-center
+            overflow-hidden
+            rounded-full
+            border-2
+            border-white
+            bg-[#f1b19b]
+            text-[10px]
+            font-bold
+            text-white
           "
         >
+          👩🏽
+        </div>
+      ))}
+    </div>
+
+    <div className="flex flex-col">
+      <span className="text-[9px] font-bold text-[#302930]">
+        Trusted by 50K+
+      </span>
+
+      <span className="text-[8px] text-[#81757c]">
+        Happy Customers
+      </span>
+
+      <div className="mt-0.5 text-[9px] tracking-[1px] text-[#ffae00]">
+        ★★★★★
+      </div>
+    </div>
+  </div>
+</div>
           {/* Customer avatars */}
           <div className="flex -space-x-2">
             {[1, 2, 3].map((item) => (
@@ -535,8 +612,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </div>
-  </div>
 </section>
 
 
@@ -667,9 +742,10 @@ export default function Home() {
         </div>
       </Reveal>
 
-      {/* SHOP BY CATEGORY */}
+
+       {/* SHOP BY CATEGORY */}
       {sectionEnabled('categories') && (
-        <Reveal as="section" className="section">
+        <Reveal as="section" className="section section--tight-top">
           <div className="container">
             <div className="section-head">
               <span className="eyebrow">Shop by Category</span>
@@ -687,134 +763,179 @@ export default function Home() {
         </Reveal>
       )}
 
-      {/* FEATURED CATEGORIES */}
-      {sectionEnabled('featuredCategories') && featuredCategories.length > 0 && (
-        <Reveal as="section" className="section">
-          <div className="container">
-            <div className="section-head">
-              <span className="eyebrow">Handpicked by the Factory</span>
-              <h2 className="section-title">Featured Categories</h2>
-            </div>
-            <div className="cat-row cat-row--grid cat-row--collections">
-              {featuredCategories.map((c) => <CategoryCircle cat={c} key={c.id} variant="card" />)}
-            </div>
-          </div>
-        </Reveal>
-      )}
-
-      {/* BEST SELLERS — carousel row with view-all, matches reference layout position right after promo cards */}
+       {/* BEST SELLERS */}
       {sectionEnabled('bestSellers') && (
-        <ProductRow eyebrow="Customer Favourites" title="Best Sellers" list={bestSellers} onQuickView={setQuickViewProduct} scroller />
+        <ProductRow eyebrow="Customer Favourites" title="Best Sellers" list={bestSellers} onQuickView={setQuickViewProduct} scroller tightTop />
       )}
 
-      {/* SECONDARY TRUST STRIP — worldwide shipping / support / returns / secure checkout */}
-      <div className="container" style={{ marginTop: 8 }}>
-        <TrustBadges items={[
-          { icon: 'globe', title: 'Worldwide Shipping', sub: 'Fast & Reliable Delivery' },
-          { icon: 'shield', title: '24/7 Customer Support', sub: "We're Here to Help" },
-          { icon: 'refresh', title: '30 Days Easy Returns', sub: 'Hassle Free Returns' },
-          { icon: 'lock', title: 'Secure Checkout', sub: 'SSL Encrypted Payment' },
-        ]} />
+
+
+      {/* NEW ARRIVALS + FLASH SALE */}
+      {(sectionEnabled('newArrivals') || sectionEnabled('flashSale')) && (
+        <Reveal as="section" className="section section--tight-top">
+          <div className="container hp-split-2-1 items-start">
+  {sectionEnabled("newArrivals") && (
+    <div>
+      <div className="section-head row !mb-6">
+        <div>
+          <span className="eyebrow">Just Landed</span>
+          <h2 className="section-title">New Arrivals</h2>
+        </div>
+
+        <Link
+          to="/shop"
+          className="btn btn-outline on-light btn-sm"
+        >
+          View All
+        </Link>
       </div>
 
-      {/* NEW ARRIVALS + FLASH SALE — side-by-side split, matching the reference layout exactly */}
-      {(sectionEnabled('newArrivals') || sectionEnabled('flashSale')) && (
-        <Reveal as="section" className="section">
-          <div className="container hp-split-2-1">
-            {sectionEnabled('newArrivals') && (
-              <div>
-                <div className="section-head row" style={{ marginBottom: 24 }}>
-                  <div>
-                    <span className="eyebrow">Just Landed</span>
-                    <h2 className="section-title">New Arrivals</h2>
-                  </div>
-                  <Link to="/shop" className="btn btn-outline on-light btn-sm">View All</Link>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 20 }}>
-                  {newArrivals.slice(0, 4).map((p) => (
-                    <ProductCard product={p} key={p.id} onQuickView={setQuickViewProduct} />
-                  ))}
-                </div>
-              </div>
-            )}
-            {sectionEnabled('flashSale') && dealOfDay && (
-              <div className="card" style={{ padding: 24, background: 'var(--espresso)', color: 'var(--cream)' }}>
-                <span className="eyebrow" style={{ color: 'var(--champagne)' }}>⚡ Flash Sale</span>
-                <p style={{ fontSize: '0.82rem', opacity: 0.65, margin: '4px 0 16px' }}>Limited Time Offer</p>
-                <CountdownTimer hours={8} endsAt={dealOfDay.flashSaleEndsAt} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 20 }}>
-                  <div style={{ width: 84, flexShrink: 0 }}>
-                    <PhotoBlock tone="gold" ratio="1/1" rounded={14} src={resolveImageUrl(dealOfDay.image) || dealOfDayImg} alt={dealOfDay.name} />
-                  </div>
-                  <div>
-                    <h4 style={{ fontSize: '0.9rem', marginBottom: 6, color: 'var(--cream)' }}>{dealOfDay.name}</h4>
-                    <div className="deal-price">
-                      <span className="price-strike" style={{ color: 'rgba(255,249,252,0.5)' }}>{rupee(dealOfDay.mrp)}</span>
-                      <span className="price-now" style={{ color: 'var(--champagne)' }}>{rupee(dealOfDay.price)}</span>
-                    </div>
-                  </div>
-                </div>
-                <Link to={`/product/${dealOfDay.id}`} className="btn btn-gold" style={{ width: '100%', marginTop: 20 }}>Shop Now</Link>
-              </div>
-            )}
-          </div>
-        </Reveal>
-      )}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {newArrivals.slice(0, 4).map((p) => (
+          <ProductCard
+            product={p}
+            key={p.id}
+            onQuickView={setQuickViewProduct}
+          />
+        ))}
+      </div>
+    </div>
+  )}
 
-      {/* Additional Flash Sale shelf (all flash-sale-tagged products, beyond the single deal-of-day) */}
-      {sectionEnabled('flashSale') && flashSaleProducts.length > 1 && (
-        <ProductRow eyebrow="Limited Time" title="Flash Sale" list={flashSaleProducts} onQuickView={setQuickViewProduct} scroller />
-      )}
+  {sectionEnabled("flashSale") && dealOfDay && (
+    <div
+      className="card self-start p-0 pb-6"
+      style={{
+        background:
+          "linear-gradient(180deg, #fff5f8 0%, #ffe3ec 100%)",
+        color: "var(--espresso)",
+        border: "1px solid rgba(226,38,103,0.12)",
+      }}
+    >
+      <div className="px-6 pt-0">
+        <span
+          className="eyebrow mb-1 flex items-center gap-1.5"
+          style={{ color: "var(--gold)" }}
+        >
+          ⚡ Flash Sale
+        </span>
 
-      {sectionEnabled('trending') && (
-        <ProductRow eyebrow="What Everyone's Wearing" title="Trending Products" list={trending} onQuickView={setQuickViewProduct} scroller />
-      )}
-      {sectionEnabled('premium') && premium.length > 0 && (
-        <ProductRow eyebrow="The Finest Selection" title="Premium Products" list={premium} onQuickView={setQuickViewProduct} scroller />
-      )}
-      {sectionEnabled('featuredProducts') && featuredProducts.length > 0 && (
-        <ProductRow eyebrow="Editor's Pick" title="Featured Products" list={featuredProducts} onQuickView={setQuickViewProduct} scroller />
-      )}
+        <p className="m-0 text-[0.82rem] opacity-60">
+          Limited Time Offer
+        </p>
+      </div>
 
-      {/* SHOP BY LENGTH — pill row using the site's existing .cat-tag pill style */}
-      <Reveal as="section" className="section section--tight-top">
-        <div className="container">
-          <div className="section-head row">
-            <div>
-              <span className="eyebrow">Find Your Fit</span>
-              <h2 className="section-title">Shop By Length</h2>
-            </div>
-            <Link to="/shop" className="btn btn-outline on-light btn-sm">View All</Link>
-          </div>
-          <div className="cat-tags" style={{ justifyContent: 'flex-start' }}>
-            {HAIR_LENGTHS.map((len) => (
-              <Link to={`/shop?length=${encodeURIComponent(len)}`} key={len} className="cat-tag">{len}</Link>
-            ))}
+      <CountdownTimer
+        hours={8}
+        endsAt={dealOfDay.flashSaleEndsAt}
+      />
+
+      <div className="mt-5 flex items-center gap-3.5 px-6">
+        <div className="w-[84px] shrink-0">
+          <PhotoBlock
+            tone="gold"
+            ratio="1/1"
+            rounded={14}
+            src={resolveImageUrl(dealOfDay.image) || dealOfDayImg}
+            alt={dealOfDay.name}
+          />
+        </div>
+
+        <div>
+          <h4 className="mb-1.5 text-sm">
+            {dealOfDay.name}
+          </h4>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="text-sm line-through"
+              style={{ color: "rgba(31,31,31,0.4)" }}
+            >
+              {rupee(dealOfDay.mrp)}
+            </span>
+
+            <span
+              className="text-lg font-bold"
+              style={{ color: "var(--gold)" }}
+            >
+              {rupee(dealOfDay.price)}
+            </span>
           </div>
         </div>
-      </Reveal>
+      </div>
 
-      {/* COLLECTIONS */}
-      {sectionEnabled('collections') && collections.length > 0 && (
-        <Reveal as="section" className="section">
-          <div className="container">
-            <div className="section-head">
-              <span className="eyebrow">Curated Edits</span>
-              <h2 className="section-title">Shop by Collection</h2>
-            </div>
-            <div className="gallery-grid">
-              {collections.map((c, i) => (
-                <Link to={`/shop?collection=${c.slug || c.id}`} key={c.id}>
-                  <PhotoBlock tone={['espresso', 'brown', 'gold', 'beige', 'cream', 'brown'][i % 6]} ratio="1/1" rounded={16} label={c.name} src={resolveImageUrl(c.image)} alt={c.name} />
-                </Link>
-              ))}
-            </div>
-          </div>
+      <Link
+        to={`/product/${dealOfDay.id}`}
+        className="btn btn-gold mx-6 mt-5 block text-center"
+      >
+        Shop Now
+      </Link>
+    </div>
+  )}
+</div>
         </Reveal>
       )}
 
+
+
+     {/* COLLECTIONS */}
+{sectionEnabled("collections") && collections.length > 0 && (
+  <Reveal as="section" className="section section--tight-top">
+    <div className="container">
+      {/* Heading */}
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <span className="eyebrow">
+            Curated Edits
+          </span>
+          <h2 className="section-title">
+            Shop by Collection
+          </h2>
+        </div>
+
+        <Link
+          to="/shop"
+          className="btn btn-outline on-light btn-sm"
+        >
+          View All
+        </Link>
+      </div>
+
+      {/* Horizontal Scroll */}
+      <div className="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {collections.map((c, i) => (
+          <Link
+            key={c.id}
+            to={`/shop?collection=${c.slug || c.id}`}
+            className="
+              snap-start
+              shrink-0
+              w-[80%]
+              sm:w-[48%]
+              lg:w-[calc((100%-72px)/4)]
+            "
+          >
+            <PhotoBlock
+              tone={
+                ["espresso", "brown", "gold", "beige", "cream", "brown"][
+                  i % 6
+                ]
+              }
+              ratio="1/1"
+              rounded={18}
+              label={c.name}
+              src={resolveImageUrl(c.image)}
+              alt={c.name}
+            />
+          </Link>
+        ))}
+      </div>
+    </div>
+  </Reveal>
+)}
+
       {/* PREMIUM GRID */}
-      <Reveal as="section" className="section">
+      <Reveal as="section" className="section section--tight-top">
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">The Full Collection</span>
@@ -834,7 +955,7 @@ export default function Home() {
       </Reveal>
 
       {/* WHY CHOOSE US + BEFORE & AFTER — side-by-side, matching the reference layout */}
-      <Reveal as="section" className="section why-section">
+      <Reveal as="section" className="section section--tight-top why-section">
         <div className="container hp-split-1-1">
           <div className="card" style={{ padding: 30 }}>
             <span className="eyebrow">{why.eyebrow || 'Why B.I.R Hair India Factory'}</span>
@@ -855,7 +976,7 @@ export default function Home() {
 
       {/* PROCESS TIMELINE */}
       {processSteps.length > 0 && (
-        <Reveal as="section" className="section">
+        <Reveal as="section" className="section section--tight-top">
           <div className="container">
             <div className="section-head">
               <span className="eyebrow">From Source to Shipment</span>
@@ -875,7 +996,7 @@ export default function Home() {
       )}
 
       {/* FACTORY GALLERY */}
-      <Reveal as="section" className="section factory-gallery-section">
+      <Reveal as="section" className="section section--tight-top factory-gallery-section">
         <div className="container">
           <div className="section-head">
             <span className="eyebrow">{gallery.eyebrow || 'Kirti Nagar, Delhi'}</span>
@@ -891,7 +1012,7 @@ export default function Home() {
       </Reveal>
 
       {/* CERTIFICATIONS */}
-      <Reveal as="section" className="section cert-section">
+      <Reveal as="section" className="section section--tight-top cert-section">
         <div className="container cert-row">
           {certifications.map((c) => (
             <div className="cert-pill glass" key={c}>{c}</div>
@@ -900,7 +1021,7 @@ export default function Home() {
       </Reveal>
 
       {/* EXPORT MAP */}
-      <Reveal as="section" className="section">
+      <Reveal as="section" className="section section--tight-top">
         <div className="container">
           <div className="section-head center">
             <span className="eyebrow">Worldwide Shipping</span>
@@ -914,7 +1035,7 @@ export default function Home() {
 
       {/* TESTIMONIALS — matches reference layout's "What Our Customers Say" row */}
       {sectionEnabled('testimonials') && testimonials.length > 0 && (
-        <Reveal as="section" className="section testi-section">
+        <Reveal as="section" className="section section--tight-top testi-section">
           <div className="container">
             <div className="section-head row">
               <div>
@@ -941,7 +1062,7 @@ export default function Home() {
 
       {/* BEFORE / AFTER GRID */}
       {beforeAfter.length > 0 && (
-        <Reveal as="section" className="section">
+        <Reveal as="section" className="section section--tight-top">
           <div className="container">
             <div className="section-head">
               <span className="eyebrow">Real Transformations</span>
@@ -964,7 +1085,7 @@ export default function Home() {
       )}
 
       {/* INSTAGRAM — matches reference layout "Follow Us On Instagram" grid */}
-      <Reveal as="section" className="section insta-section">
+      <Reveal as="section" className="section section--tight-top insta-section">
         <div className="container">
           <div className="section-head row">
             <div>
@@ -981,26 +1102,50 @@ export default function Home() {
         </div>
       </Reveal>
 
-      <Reveal as="section" className="section">
-        <div className="container">
-          <div className="section-head">
-            <span className="eyebrow">Watch &amp; Believe</span>
-            <h2 className="section-title">Video Reviews</h2>
-          </div>
-          <div className="video-row">
-            {videoImages.map((img, i) => (
-              <div className="video-card" key={i}>
-                <PhotoBlock tone="espresso" ratio="9/16" rounded={18} strands={false} src={img} alt="Customer video review" />
-                <span className="video-play"><FiPlay /></span>
-              </div>
-            ))}
-          </div>
+    <Reveal as="section" className="section section--tight-top">
+  <div className="container">
+    <div className="section-head">
+      <span className="eyebrow">Watch &amp; Believe</span>
+      <h2 className="section-title">Video Reviews</h2>
+    </div>
+
+    <div
+      className="flex gap-4 overflow-x-auto pb-3
+                 [&::-webkit-scrollbar]:hidden
+                 [-ms-overflow-style:none]
+                 [scrollbar-width:none]"
+    >
+      {videoImages.map((img, i) => (
+        <div
+          className="relative w-[calc((100%-80px)/6)] min-w-[150px] shrink-0"
+          key={i}
+        >
+          <PhotoBlock
+            tone="espresso"
+            ratio="9/16"
+            rounded={18}
+            strands={false}
+            src={img}
+            alt="Customer video review"
+          />
+
+          <span
+            className="absolute left-1/2 top-1/2 flex h-10 w-10
+                       -translate-x-1/2 -translate-y-1/2
+                       items-center justify-center rounded-full
+                       bg-white/90 text-gray-900 shadow-lg"
+          >
+            <FiPlay />
+          </span>
         </div>
-      </Reveal>
+      ))}
+    </div>
+  </div>
+</Reveal>
 
       {/* BLOGS */}
       {blogs.length > 0 && (
-        <Reveal as="section" className="section">
+        <Reveal as="section" className="section section--tight-top">
           <div className="container">
             <div className="section-head">
               <span className="eyebrow">The Journal</span>
@@ -1066,25 +1211,49 @@ export default function Home() {
   );
 }
 
-function ProductRow({ eyebrow, title, list, onQuickView, scroller }) {
+function ProductRow({ eyebrow, title, list, onQuickView, scroller, tightTop }) {
   if (!list.length) return null;
+
   return (
-    <Reveal as="section" className="section">
+    <Reveal
+      as="section"
+      className={tightTop ? "section section--tight-top" : "section"}
+    >
       <div className="container">
         <div className="section-head row">
           <div>
             <span className="eyebrow">{eyebrow}</span>
             <h2 className="section-title">{title}</h2>
           </div>
-          <Link to="/shop" className="btn btn-outline on-light">View All Products <FiChevronRight /></Link>
+
+          <Link to="/shop" className="btn btn-outline on-light">
+            View All Products <FiChevronRight />
+          </Link>
         </div>
-        <div className={scroller ? 'product-scroll product-scroll--arrows' : 'product-scroll'}>
-          {list.map((p) => <ProductCard product={p} key={p.id} onQuickView={onQuickView} />)}
-        </div>
+
+        <div
+  className="flex gap-5 overflow-x-auto pb-3 snap-x snap-mandatory
+             [&::-webkit-scrollbar]:hidden
+             [-ms-overflow-style:none]
+             [scrollbar-width:none]"
+>
+  {list.map((p) => (
+    <div
+      key={p.id}
+      className="shrink-0 snap-start w-[75%] sm:w-[48%] lg:w-[calc((100%-60px)/4)]"
+    >
+      <ProductCard
+        product={p}
+        onQuickView={onQuickView}
+      />
+    </div>
+  ))}
+</div>
       </div>
     </Reveal>
   );
 }
+
 
 function BeforeAfterCard({ items }) {
   const [i, setI] = useState(0);
