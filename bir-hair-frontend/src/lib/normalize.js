@@ -3,6 +3,31 @@
 // component's JSX, we normalize API responses into those same shapes here —
 // one place to update if the contract ever changes.
 
+// Variants come back from the API with their own (sometimes differently-named)
+// fields — e.g. "colour" instead of "color", pricing under unitPrice/sellingPrice
+// instead of price/mrp. We normalize each variant to the same shape the rest of
+// the app expects, with fallbacks for the field-name variants we've seen in
+// real API responses.
+export function normalizeVariant(v) {
+  if (!v) return v;
+  return {
+    id: v._id || v.id || v.sku,
+    sku: v.sku,
+    length: v.length,
+    color: v.color || v.colour, // API sometimes sends British spelling "colour"
+    texture: v.texture,
+    hairType: v.hairType || v.texture, // fall back to texture if hairType isn't sent
+    weight: v.weight,
+    density: v.density,
+    price: v.price ?? v.unitPrice ?? v.sellingPrice ?? v.finalPrice,
+    mrp: v.mrp ?? v.unitPrice,
+    discount: v.discount ?? 0,
+    stock: v.stock,
+    image: v.image || v.images?.[0] || v.gallery?.[0]?.url || v.gallery?.[0],
+    images: v.images || (v.gallery || []).map((g) => (typeof g === 'string' ? g : g.url)).filter(Boolean),
+  };
+}
+
 export function normalizeProduct(p) {
   if (!p) return p;
   return {
@@ -15,9 +40,9 @@ export function normalizeProduct(p) {
     collectionRef: p.collectionRef,
     brand: p.brand,
     texture: p.texture,
-    hairType: p.hairType,
+    hairType: p.hairType || p.texture, // fall back to texture if hairType isn't sent
     length: p.length,
-    color: p.color,
+    color: p.color || p.colour, // API sometimes sends British spelling "colour"
     rating: p.rating || 0,
     reviews: p.reviewsCount || 0,
     mrp: p.mrp,
@@ -38,7 +63,7 @@ export function normalizeProduct(p) {
     gallery: p.gallery || [],
     video: p.video || '',
     hasVariants: !!p.hasVariants,
-    variants: p.variants || [],
+    variants: (p.variants || []).map(normalizeVariant),
     // --- Admin-controlled homepage / merchandising flags ---
     featured: !!p.featured,
     newArrival: !!p.newArrival,

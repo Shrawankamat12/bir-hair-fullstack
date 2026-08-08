@@ -94,9 +94,9 @@ export default function Navbar() {
       <div className="nav-announce">
         <div className="container nav-announce-inner nav-announce-split">
           <span className="nav-announce-left">
-            <FiPhone /> <span>+1 (234) 567-8900</span>
+            <FiPhone size={16} /> <span>+1 (234) 567-8900</span>
             <span className="nav-announce-sep" />
-            <FiTruck />
+            <FiTruck size={16} />
             <AnimatePresence mode="wait">
               <motion.span
                 key={msgIndex}
@@ -121,7 +121,7 @@ export default function Navbar() {
       <div className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
         <div className="container navbar-inner">
           <button className="nav-burger" aria-label="Open menu" onClick={() => setDrawerOpen(true)}>
-            <FiMenu />
+            <FiMenu size={24} />
           </button>
 
           <Link to="/" className="nav-logo">
@@ -142,24 +142,24 @@ export default function Navbar() {
               onChange={(e) => setQuery(e.target.value)}
               aria-label="Search products"
             />
-            <button type="submit" aria-label="Search"><FiSearch /></button>
+            <button type="submit" aria-label="Search"><FiSearch size={20} /></button>
           </form>
 
           <div className="nav-icons">
             <Link className="nav-action" to={user ? '/account' : '/login'}>
-              <FiUser />
+              <FiUser size={22} />
               <span>Account</span>
             </Link>
             <Link className="nav-action" to="/wishlist">
               <span className="nav-action-icon">
-                <FiHeart />
+                <FiHeart size={22} />
                 {wishlist.length > 0 && <span className="nav-icon-badge">{wishlist.length}</span>}
               </span>
               <span>Wishlist</span>
             </Link>
             <Link className="nav-action nav-cart" to="/cart">
               <span className="nav-action-icon">
-                <FiShoppingBag />
+                <FiShoppingBag size={22} />
                 {cartCount > 0 && <span className="nav-icon-badge gold">{cartCount}</span>}
               </span>
               <span>Cart</span>
@@ -176,6 +176,7 @@ export default function Navbar() {
                   <li
                     key={l.to}
                     ref={shopItemRef}
+                    className="relative"
                     onMouseEnter={() => setMegaOpen(true)}
                     onMouseLeave={() => setMegaOpen(false)}
                   >
@@ -191,26 +192,50 @@ export default function Navbar() {
                       aria-haspopup="true"
                     >
                       {l.label}
-                      <FiChevronDown className="nav-chevron" style={{ transform: megaOpen ? 'rotate(180deg)' : 'none', transition: 'transform 220ms ease', marginLeft: 4 }} />
+                      <FiChevronDown size={16} className="nav-chevron" style={{ transform: megaOpen ? 'rotate(180deg)' : 'none', transition: 'transform 220ms ease', marginLeft: 4 }} />
                     </NavLink>
-                    <div className={`mega-menu glass ${megaOpen ? 'open' : ''}`}>
-                      <div className="mega-menu-grid">
+
+                    {/* ===== Redesigned mega dropdown (no images, Tailwind, pink theme) ===== */}
+                    <div
+                      className={`
+                        absolute left-0 top-full z-40 ml-6 mt-3 w-[680px]
+                        rounded-2xl border border-black/5 bg-white
+                        shadow-[0_25px_60px_-15px_rgba(226,36,103,0.28)]
+                        transition-all duration-250 ease-out
+                        ${megaOpen ? 'visible translate-y-0 opacity-100' : 'invisible -translate-y-2 opacity-0 pointer-events-none'}
+                      `}
+                    >
+                      <div className="grid grid-cols-4 gap-6 p-6">
                         {megaMenu.map((col) => (
-                          <div className="mega-col" key={col.title}>
-                            <div className="mega-col-thumb" style={col.img ? { backgroundImage: `url(${col.img})` } : undefined} />
-                            <h4>{col.title}</h4>
-                            <ul>
+                          <div key={col.title}>
+                            <h4 className="mb-3 border-b border-[#f8b4ca]/40 pb-2 text-sm font-semibold text-gray-900">
+                              {col.title}
+                            </h4>
+                            <ul className="space-y-2">
                               {col.items.map((it) => (
                                 <li key={it}>
-                                  <Link to="/shop" onClick={() => setMegaOpen(false)}>{it}</Link>
+                                  <Link
+                                    to="/shop"
+                                    onClick={() => setMegaOpen(false)}
+                                    className="group flex items-center gap-1.5 text-xs text-gray-500 transition-colors hover:text-[#ef6c9d]"
+                                  >
+                                    <span className="h-1 w-1 rounded-full bg-[#f8b4ca] transition-colors group-hover:bg-[#ef6c9d]" />
+                                    {it}
+                                  </Link>
                                 </li>
                               ))}
                             </ul>
                           </div>
                         ))}
                       </div>
-                      <div className="mega-menu-foot">
-                        <Link to="/shop" className="btn btn-gold btn-sm" onClick={() => setMegaOpen(false)}>View Full Shop</Link>
+                      <div className="flex justify-end rounded-b-2xl border-t border-black/5 bg-[#fff8fa] px-6 py-4">
+                        <Link
+                          to="/shop"
+                          onClick={() => setMegaOpen(false)}
+                          className="rounded-full bg-gradient-to-r from-[#f58bb1] to-[#e22467] px-5 py-2 text-xs font-semibold text-white shadow-[0_8px_20px_rgba(226,36,103,0.3)] transition-transform hover:scale-105"
+                        >
+                          View Full Shop
+                        </Link>
                       </div>
                     </div>
                   </li>
@@ -237,10 +262,10 @@ export default function Navbar() {
             </span>
             <span className="nav-logo-mark">B.I.R</span>
           </span>
-          <button aria-label="Close menu" onClick={() => setDrawerOpen(false)} className="nav-drawer-close"><FiX /></button>
+          <button aria-label="Close menu" onClick={() => setDrawerOpen(false)} className="nav-drawer-close"><FiX size={22} /></button>
         </div>
         <form className="nav-drawer-search" onSubmit={(e) => { submitSearch(e); setDrawerOpen(false); }}>
-          <FiSearch />
+          <FiSearch size={18} />
           <input placeholder="Search…" value={query} onChange={(e) => setQuery(e.target.value)} />
         </form>
         <ul className="nav-drawer-links">

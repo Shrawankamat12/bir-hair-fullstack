@@ -1,12 +1,36 @@
 import { createContext, useContext, useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { authApi, cartApi, wishlistApi, couponsApi } from '../lib/resources';
-import { normalizeProduct } from '../lib/normalize';
+import { normalizeProduct, normalizeVariant } from '../lib/normalize';
 import { ApiError } from '../lib/api';
 
 const StoreContext = createContext(null);
 
+// Cart items from the backend come as { product: {...}, variant: {...}, qty }.
+// The product-level price/color/length etc. are only meaningful for products
+// WITHOUT variants — once a variant is selected, its length/colour/texture/
+// weight/price override the base product's fields. Previously this function
+// only normalized item.product and silently dropped item.variant, which is
+// why variant cart items showed ₹0 and blank color/hairType.
 function normalizeCartItem(item) {
-  return { ...normalizeProduct(item.product), qty: item.qty };
+  const product = normalizeProduct(item.product);
+  const variant = item.variant ? normalizeVariant(item.variant) : null;
+
+  return {
+    ...product,
+    ...(variant && {
+      length: variant.length ?? product.length,
+      color: variant.color ?? product.color,
+      texture: variant.texture ?? product.texture,
+      hairType: variant.hairType ?? product.hairType,
+      weight: variant.weight ?? product.weight,
+      sku: variant.sku ?? product.sku,
+      price: variant.price ?? product.price,
+      mrp: variant.mrp ?? product.mrp,
+      image: variant.image || product.image,
+    }),
+    variantId: variant?.id || null,
+    qty: item.qty,
+  };
 }
 
 export function StoreProvider({ children }) {
@@ -106,17 +130,26 @@ export function StoreProvider({ children }) {
   }, [showToast]);
 
   // ---- cart actions (backend-synced when logged in, local otherwise) ----
+  // NOTE: for guest carts, `product` here is whatever ProductDetail.jsx passes in.
+  // If that page lets the user pick a variant, make sure it merges the selected
+  // variant's price/length/color/etc. into the object it hands to addToCart —
+  // otherwise guest-cart items will have the same ₹0/blank-field bug that was
+  // happening for logged-in users, just on the client side instead of here.
   const addToCart = useCallback((product, qty = 1) => {
     if (user) {
       cartApi
-        .add(product.id, qty)
+        .add(product.id, qty, product.variantId)
         .then((res) => setCart((res.data?.items || []).map(normalizeCartItem)))
         .catch((err) => showError(err, 'Could not add to cart'));
     } else {
-      pendingGuestCart.current.push({ id: product.id, qty });
+      pendingGuestCart.current.push({ id: product.id, qty, variantId: product.variantId });
       setCart((prev) => {
-        const existing = prev.find((i) => i.id === product.id);
-        if (existing) return prev.map((i) => (i.id === product.id ? { ...i, qty: i.qty + qty } : i));
+        const existing = prev.find((i) => i.id === product.id && i.variantId === product.variantId);
+        if (existing) {
+          return prev.map((i) =>
+            i.id === product.id && i.variantId === product.variantId ? { ...i, qty: i.qty + qty } : i
+          );
+        }
         return [...prev, { ...product, qty }];
       });
     }
