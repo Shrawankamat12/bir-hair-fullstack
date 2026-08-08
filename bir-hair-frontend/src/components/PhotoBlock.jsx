@@ -1,4 +1,3 @@
-
 const TONES = {
   espresso: ['#3d1128', '#5c1f3d'],
   gold: ['#F85D9B', '#F7B9D3'],
@@ -7,7 +6,7 @@ const TONES = {
   brown: ['#1F1F1F', '#3a2530'],
 };
 
-export default function PhotoBlock({ tone = 'beige', ratio = '4/5', label, sub, className = '', rounded = 20, strands = true, src, alt = '' }) {
+export default function PhotoBlock({ tone = 'beige', ratio = '4/5', label, sub, className = '', rounded = 20, strands = true, src, alt = '', zoom = 1 }) {
   const [c1, c2] = TONES[tone] || TONES.beige;
   const id = Math.random().toString(36).slice(2, 8);
   return (
@@ -15,7 +14,15 @@ export default function PhotoBlock({ tone = 'beige', ratio = '4/5', label, sub, 
       className={`photoblock ${src ? 'has-img' : ''} ${className}`}
       style={{ aspectRatio: ratio, borderRadius: rounded, background: `linear-gradient(155deg, ${c1}, ${c2})` }}
     >
-      {src && <img className="photoblock-img" src={src} alt={alt} loading="lazy" />}
+      {src && (
+  <img
+    className="photoblock-img"
+    src={src}
+    alt={alt}
+    loading="lazy"
+    style={zoom !== 1 ? { transform: `scale(${zoom})`, transformOrigin: 'center 25%' } : undefined}
+  />
+)}
       {src && (label || sub) && <div className="photoblock-scrim" />}
       {!src && strands && (
         <svg className="photoblock-strands" viewBox="0 0 300 300" preserveAspectRatio="none" aria-hidden="true">
