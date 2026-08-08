@@ -60,11 +60,15 @@ export const reviewsApi = {
   create: (payload) => api.post('/reviews', payload),
 };
 
+// NOTE: add/update/remove now all pass variantId through to the backend.
+// Without this, the backend has no way to know which variant of a product
+// was selected — cart items with variants (length/colour/etc.) would fall
+// back to the base product's (often empty) price/length/color fields.
 export const cartApi = {
   get: () => api.get('/cart'),
-  add: (productId, qty = 1) => api.post('/cart', { productId, qty }),
-  update: (productId, qty) => api.put(`/cart/${productId}`, { qty }),
-  remove: (productId) => api.del(`/cart/${productId}`),
+  add: (productId, qty = 1, variantId = null) => api.post('/cart', { productId, qty, variantId }),
+  update: (productId, qty, variantId = null) => api.put(`/cart/${productId}`, { qty, variantId }),
+  remove: (productId, variantId = null) => api.del(`/cart/${productId}`, { variantId }),
 };
 
 export const wishlistApi = {
