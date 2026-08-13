@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FiX, FiPlay, FiHeart } from 'react-icons/fi';
+import { FiX, FiPlay, FiHeart, FiShield, FiTruck as FiTruckIcon } from 'react-icons/fi';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import PhotoBlock from '../components/PhotoBlock';
 import ImageZoom from '../components/ImageZoom';
@@ -13,6 +13,7 @@ import RecentlyViewed from '../components/RecentlyViewed';
 import { ProductGridSkeleton, LineSkeleton, BlockSkeleton } from '../components/Skeletons';
 import { ErrorState } from '../components/StateBlocks';
 import { rupee } from '../lib/format';
+import { resolveImageUrl } from '../lib/api';
 import { useProduct, useProducts, useProductReviews } from '../hooks/useStoreData';
 import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
 import { reviewsApi } from '../lib/resources';
@@ -110,7 +111,10 @@ export default function ProductDetail() {
     : product.images || [];
   const thumbImages = [...new Set([product.image, ...ownGallery])].filter(Boolean);
   if (thumbImages.length < 2) thumbImages.push(...related.map((p) => p.image).filter(Boolean));
-  const galleryImages = [...new Set(thumbImages)].slice(0, 6);
+  // Resolve every image (admin-uploaded paths like "/uploads/xyz.png") into a full URL
+  // the browser can actually load — this was previously missing, which is why
+  // admin-uploaded product images weren't rendering on this page.
+  const galleryImages = [...new Set(thumbImages)].slice(0, 6).map(resolveImageUrl);
 
   const effectivePrice = selectedVariant?.price ?? product.price;
   const effectiveStock = selectedVariant ? selectedVariant.stock : product.stock;
@@ -141,46 +145,72 @@ export default function ProductDetail() {
 
       <div className="section pdp-section">
         <div className="container pdp-grid">
+          {/* ===================== GALLERY ===================== */}
           <div className="pdp-gallery">
             {showVideo && product.video ? (
-              <div className="pdp-video-frame">
-                <video src={product.video} controls autoPlay className="pdp-video" />
+              <div className="pdp-video-frame overflow-hidden rounded-3xl shadow-[0_24px_60px_-32px_rgba(226,36,103,0.35)]">
+                <video src={resolveImageUrl(product.video)} controls autoPlay className="pdp-video" />
                 <button className="pdp-video-close" onClick={() => setShowVideo(false)} aria-label="Back to photos"><FiX /> Photos</button>
               </div>
             ) : (
-              <ImageZoom src={galleryImages[activeImg] || product.image} alt={product.name} tone={product.tone} rounded={22} />
+              // No overflow-hidden here — ImageZoom needs room to scale the image on hover,
+              // clipping it breaks the zoom interaction.
+              <div className="drop-shadow-[0_20px_45px_rgba(226,36,103,0.18)]">
+                <ImageZoom src={galleryImages[activeImg] || resolveImageUrl(product.image)} alt={product.name} tone={product.tone} rounded={22} />
+              </div>
             )}
             {(galleryImages.length > 1 || product.video) && (
-              <div className="pdp-thumbs">
+              <div className="pdp-thumbs mt-4 flex gap-3">
                 {galleryImages.map((img, i) => (
-                  <button key={i} className={`pdp-thumb ${!showVideo && activeImg === i ? 'active' : ''}`} onClick={() => { setActiveImg(i); setShowVideo(false); }}>
-                    <PhotoBlock tone={['gold', 'brown', 'beige', 'espresso'][i % 4]} ratio="1/1" rounded={12} strands={false} src={img} alt="" />
+                  <button
+                    key={i}
+                    className={`pdp-thumb overflow-hidden rounded-xl border-2 transition-all ${
+                      !showVideo && activeImg === i
+                        ? 'border-[#ef6c9d] shadow-[0_6px_16px_rgba(226,36,103,0.25)]'
+                        : 'border-transparent opacity-80 hover:opacity-100 hover:border-[#f8b4ca]'
+                    }`}
+                    onClick={() => { setActiveImg(i); setShowVideo(false); }}
+                  >
+                    <PhotoBlock tone={['gold', 'brown', 'beige', 'espresso'][i % 4]} ratio="1/1" rounded={10} strands={false} src={img} alt="" />
                   </button>
                 ))}
                 {product.video && (
-                  <button className={`pdp-thumb pdp-thumb-video ${showVideo ? 'active' : ''}`} onClick={() => setShowVideo(true)} aria-label="Play product video">
-                    <PhotoBlock tone="espresso" ratio="1/1" rounded={12} strands={false} src={product.image} alt="" />
-                    <span className="pdp-thumb-play"><FiPlay /></span>
+                  <button
+                    className={`pdp-thumb pdp-thumb-video relative overflow-hidden rounded-xl border-2 transition-all ${
+                      showVideo ? 'border-[#ef6c9d] shadow-[0_6px_16px_rgba(226,36,103,0.25)]' : 'border-transparent opacity-80 hover:opacity-100 hover:border-[#f8b4ca]'
+                    }`}
+                    onClick={() => setShowVideo(true)}
+                    aria-label="Play product video"
+                  >
+                    <PhotoBlock tone="espresso" ratio="1/1" rounded={10} strands={false} src={resolveImageUrl(product.image)} alt="" />
+                    <span className="pdp-thumb-play absolute inset-0 flex items-center justify-center bg-black/30 text-white"><FiPlay /></span>
                   </button>
                 )}
               </div>
             )}
           </div>
 
+          {/* ===================== INFO ===================== */}
           <div className="pdp-info">
-            {product.badge && <span className={`badge badge-${product.badge.toLowerCase().replace(/[^a-z]/g, '')}`}>{product.badge}</span>}
-            {product.saleBadgeText && <span className="badge badge-discount">{product.saleBadgeText}</span>}
-            <h1 className="pdp-title">{product.name}</h1>
-            <div className="pdp-rating">
+            {(product.badge || product.saleBadgeText) && (
+              <div className="mb-2 flex flex-wrap gap-2">
+                {product.badge && <span className={`badge badge-${product.badge.toLowerCase().replace(/[^a-z]/g, '')}`}>{product.badge}</span>}
+                {product.saleBadgeText && <span className="badge badge-discount">{product.saleBadgeText}</span>}
+              </div>
+            )}
+            <h1 className="pdp-title leading-tight">{product.name}</h1>
+            <div className="pdp-rating mt-1.5">
               <StarRating value={product.rating} />
               <span>{product.rating} · {product.reviews} reviews</span>
             </div>
-            <div className="pdp-price">
+
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl bg-gradient-to-r from-[#fff5f8] to-[#fff0f5] px-5 py-4">
+              <span className="price-now" style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.01em' }}>{rupee(effectivePrice)}</span>
               {product.discountPct > 0 && <span className="price-strike">{rupee(product.mrp)}</span>}
-              <span className="price-now" style={{ fontSize: '1.7rem' }}>{rupee(effectivePrice)}</span>
-              {product.discountPct > 0 && <span className="badge badge-discount">-{product.discountPct}%</span>}
+              {product.discountPct > 0 && <span className="badge badge-discount">-{product.discountPct}% OFF</span>}
             </div>
-            {product.description && <p className="pdp-desc">{product.description}</p>}
+
+            {product.description && <p className="pdp-desc mt-3">{product.description}</p>}
 
             {product.tags?.length > 0 && (
               <div className="pdp-tags">
@@ -188,20 +218,37 @@ export default function ProductDetail() {
               </div>
             )}
 
+            {/* FIX: length chips now use their own .pdp-chip / .pdp-chip-row classes
+                (previously reused .facc-chip / .facc-chip-row from the sidebar filter
+                accordion, which forces flex-direction: column + width: 100% — that's
+                why these were rendering as a stacked checkbox list instead of pills). */}
             <div className="pdp-variant">
               <span className="pdp-variant-label">Length</span>
-              <div className="facc-chip-row">
+              <div className="pdp-chip-row mt-2">
                 {lengthOptions.map((l) => (
-                  <button key={l} className={`facc-chip ${String(selLength) === String(l) ? 'active' : ''}`} onClick={() => setSelLength(l)}>{l}"</button>
+                  <button
+                    key={l}
+                    className={`pdp-chip ${String(selLength) === String(l) ? 'active' : ''}`}
+                    onClick={() => setSelLength(l)}
+                  >
+                    {l}"
+                  </button>
                 ))}
               </div>
             </div>
 
+            {/* FIX: same treatment for color chips — see note above. */}
             <div className="pdp-variant">
               <span className="pdp-variant-label">Color</span>
-              <div className="facc-chip-row">
+              <div className="pdp-chip-row mt-2">
                 {colorOptions.map((c) => (
-                  <button key={c} className={`facc-chip ${selColor === c ? 'active' : ''}`} onClick={() => setSelColor(c)}>{c}</button>
+                  <button
+                    key={c}
+                    className={`pdp-chip ${selColor === c ? 'active' : ''}`}
+                    onClick={() => setSelColor(c)}
+                  >
+                    {c}
+                  </button>
                 ))}
               </div>
             </div>
@@ -215,43 +262,86 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            <div className="pdp-stock">
+            <div className={`pdp-stock mt-4 ${effectiveStock > 0 ? 'text-emerald-600' : 'text-red-500'}`} style={{ fontWeight: 600 }}>
               {effectiveStock > 0 ? '✓ In stock — ships within 24 hours from Delhi' : 'Currently out of stock'}
             </div>
 
-            <div className="pdp-actions">
-              <button className="btn btn-outline on-light" onClick={() => addToCart({ ...product, price: effectivePrice, sku: effectiveSku, length: selLength, color: selColor }, qty)}>Add to Cart</button>
-              <Link to="/checkout" className="btn btn-gold" onClick={() => addToCart({ ...product, price: effectivePrice, sku: effectiveSku, length: selLength, color: selColor }, qty)}>Buy Now</Link>
-              <button className={`pdp-wish-btn ${isWishlisted(product.id) ? 'active' : ''}`} onClick={() => toggleWishlist(product)} aria-label="Wishlist"><FiHeart /></button>
+            <div className="pdp-actions mt-3 flex items-center gap-3">
+              <button
+                className="btn btn-outline on-light flex-1"
+                onClick={() => addToCart({ ...product, price: effectivePrice, sku: effectiveSku, length: selLength, color: selColor }, qty)}
+              >
+                Add to Cart
+              </button>
+              <Link
+                to="/checkout"
+                className="btn btn-gold flex-1 text-center"
+                onClick={() => addToCart({ ...product, price: effectivePrice, sku: effectiveSku, length: selLength, color: selColor }, qty)}
+              >
+                Buy Now
+              </Link>
+              <button
+                className={`pdp-wish-btn shrink-0 ${isWishlisted(product.id) ? 'active' : ''}`}
+                onClick={() => toggleWishlist(product)}
+                aria-label="Wishlist"
+              >
+                <FiHeart />
+              </button>
             </div>
 
-            <label className="pdp-compare-toggle">
+            <label className="pdp-compare-toggle mt-2 block">
               <input type="checkbox" checked={isComparing(product.id)} onChange={() => toggleCompare(product)} />
               Add this to my comparison list
             </label>
 
-            <TrustBadges className="pdp-trust-strip" />
+            <TrustBadges className="pdp-trust-strip mt-4" />
 
-            <div className="pdp-delivery card">
-              <span className="eyebrow">Delivery Estimate</span>
-              <p>Order within the next 4 hours to have it ship today. Standard delivery: 3–6 business days domestic, 6–12 business days international.</p>
+            <div className="pdp-delivery card mt-4 flex items-start gap-3">
+              <FiTruckIcon className="mt-0.5 shrink-0 text-[#ef6c9d]" size={18} />
+              <div>
+                <span className="eyebrow">Delivery Estimate</span>
+                <p>Order within the next 4 hours to have it ship today. Standard delivery: 3–6 business days domestic, 6–12 business days international.</p>
+              </div>
             </div>
 
-            <div className="pdp-bulk card">
-              <span className="eyebrow">Bulk &amp; Wholesale Pricing</span>
-              <p className="pdp-bulk-lede">Buying for your salon or export business? Save more per bundle at higher quantities.</p>
-              <div className="pdp-bulk-table">
-                <div className="pdp-bulk-row pdp-bulk-head"><span>Quantity</span><span>Discount</span><span>Price / Bundle</span></div>
-                {[
-                  { qty: '1–2 bundles', off: '—', price: effectivePrice },
-                  { qty: '3–5 bundles', off: '5% off', price: Math.round(effectivePrice * 0.95) },
-                  { qty: '6–10 bundles', off: '10% off', price: Math.round(effectivePrice * 0.9) },
-                  { qty: '11+ bundles', off: '15% off', price: Math.round(effectivePrice * 0.85) },
-                ].map((row) => (
-                  <div className="pdp-bulk-row" key={row.qty}><span>{row.qty}</span><span className="pdp-bulk-off">{row.off}</span><span>{rupee(row.price)}</span></div>
-                ))}
+            {/* FIX: bulk pricing card now uses a two-column layout on wider screens —
+                left column = icon/heading/copy, right column = the table — so the
+                card doesn't look empty on the left and cramped on the right. */}
+            <div className="pdp-bulk card mt-4">
+              <div className="flex flex-col md:flex-row md:items-start gap-5">
+                <div className="md:w-[38%] shrink-0">
+                  <span className="eyebrow flex items-center gap-2">
+                    <FiShield className="text-[#ef6c9d]" size={15} /> Bulk &amp; Wholesale Pricing
+                  </span>
+                  <p className="pdp-bulk-lede mt-2">
+                    Buying for your salon or export business? Save more per bundle at higher quantities.
+                  </p>
+                  <Link to="/wholesale" className="btn btn-outline on-light btn-sm mt-4 inline-block">
+                    Get a Wholesale Quote
+                  </Link>
+                </div>
+
+                <div className="pdp-bulk-table flex-1 rounded-xl overflow-hidden border border-[#f3d9e3]">
+                  <div className="pdp-bulk-row pdp-bulk-head grid grid-cols-3 gap-2 px-4 py-2.5 bg-[#fdeef3] font-semibold text-[#b23763] text-sm">
+                    <span>Quantity</span><span>Discount</span><span>Price / Bundle</span>
+                  </div>
+                  {[
+                    { qty: '1–2 bundles', off: '—', price: effectivePrice },
+                    { qty: '3–5 bundles', off: '5% off', price: Math.round(effectivePrice * 0.95) },
+                    { qty: '6–10 bundles', off: '10% off', price: Math.round(effectivePrice * 0.9) },
+                    { qty: '11+ bundles', off: '15% off', price: Math.round(effectivePrice * 0.85) },
+                  ].map((row, i) => (
+                    <div
+                      className={`pdp-bulk-row grid grid-cols-3 gap-2 px-4 py-2.5 text-sm ${i % 2 === 1 ? 'bg-[#fff8fa]' : 'bg-white'}`}
+                      key={row.qty}
+                    >
+                      <span>{row.qty}</span>
+                      <span className="pdp-bulk-off text-emerald-600 font-semibold">{row.off}</span>
+                      <span>{rupee(row.price)}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <Link to="/wholesale" className="btn btn-outline on-light btn-sm" style={{ marginTop: 14 }}>Get a Wholesale Quote</Link>
             </div>
           </div>
         </div>
@@ -317,9 +407,16 @@ export default function ProductDetail() {
 
                 <form className="pdp-review-form" onSubmit={submitReview} style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 480 }}>
                   <span className="eyebrow">Write a Review</span>
-                  <div className="facc-chip-row">
+                  <div className="pdp-chip-row">
                     {[5, 4, 3, 2, 1].map((n) => (
-                      <button type="button" key={n} className={`facc-chip ${reviewForm.rating === n ? 'active' : ''}`} onClick={() => setReviewForm((f) => ({ ...f, rating: n }))}>{n}★</button>
+                      <button
+                        type="button"
+                        key={n}
+                        className={`pdp-chip ${reviewForm.rating === n ? 'active' : ''}`}
+                        onClick={() => setReviewForm((f) => ({ ...f, rating: n }))}
+                      >
+                        {n}★
+                      </button>
                     ))}
                   </div>
                   <textarea

@@ -5053,6 +5053,46 @@
   margin-top: 6px;
 }
 
+/* -----------------------------------------------------------------
+   FIX: Length / Color / review-rating chips on the PDP were reusing
+   .facc-chip / .facc-chip-row from the sidebar Filter Accordion,
+   which forces flex-direction: column + width: 100% + checkbox-style
+   ::before/::after. That's why they rendered as a stacked vertical
+   checkbox list instead of a compact pill row, and why the info
+   column looked empty/sparse on the right. These are the PDP's own
+   pill classes, independent of the filter accordion.
+----------------------------------------------------------------- */
+.pdp-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pdp-chip {
+  flex: none;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(31, 31, 31, 0.14);
+  background: #fff;
+  color: var(--brown);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 200ms var(--ease-out), border-color 200ms var(--ease-out), color 200ms var(--ease-out), box-shadow 200ms var(--ease-out), transform 200ms var(--ease-out);
+}
+
+.pdp-chip:hover {
+  border-color: rgba(248, 93, 155, 0.5);
+  background: rgba(248, 93, 155, 0.06);
+}
+
+.pdp-chip.active {
+  background-image: var(--gold-grad-rich);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--shadow-gold);
+}
+
 @media (max-width: 900px) {
   .pdp-grid {
     grid-template-columns: 1fr;
