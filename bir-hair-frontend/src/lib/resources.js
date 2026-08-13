@@ -1,17 +1,37 @@
 import { api } from './api';
 
 export const authApi = {
+  // Current logged-in user
   me: () => api.get('/auth/me'),
+
+  // Normal login
   login: (payload) => api.post('/auth/login', payload),
+
+  // Normal registration
   register: (payload) => api.post('/auth/register', payload),
+
+  // Logout
   logout: () => api.post('/auth/logout'),
+
+  // Forgot password
+  forgotPassword: (email) =>
+    api.post('/auth/forgot-password', { email }),
+
+  // Reset password
+  resetPassword: (payload) =>
+    api.post('/auth/reset-password', payload),
 };
 
 export const productsApi = {
   list: (query) => api.get('/products', query),
   get: (idOrSlug) => api.get(`/products/${idOrSlug}`),
-  byBadge: (badge) => api.get(`/products/badge/${encodeURIComponent(badge)}`),
-  byFlag: (flag, limit) => api.get(`/products/flag/${flag}`, limit ? { limit } : undefined),
+  byBadge: (badge) =>
+    api.get(`/products/badge/${encodeURIComponent(badge)}`),
+  byFlag: (flag, limit) =>
+    api.get(
+      `/products/flag/${flag}`,
+      limit ? { limit } : undefined
+    ),
 };
 
 export const categoriesApi = {
@@ -19,7 +39,11 @@ export const categoriesApi = {
 };
 
 export const subcategoriesApi = {
-  list: (categoryId) => api.get('/subcategories', categoryId ? { categoryId } : undefined),
+  list: (categoryId) =>
+    api.get(
+      '/subcategories',
+      categoryId ? { categoryId } : undefined
+    ),
 };
 
 export const brandsApi = {
@@ -31,7 +55,11 @@ export const collectionsApi = {
 };
 
 export const attributesApi = {
-  list: (type) => api.get('/attributes', type ? { type } : undefined),
+  list: (type) =>
+    api.get(
+      '/attributes',
+      type ? { type } : undefined
+    ),
 };
 
 export const siteContentApi = {
@@ -39,7 +67,12 @@ export const siteContentApi = {
 };
 
 export const blogsApi = {
-  list: (category) => api.get('/blogs', category ? { category } : undefined),
+  list: (category) =>
+    api.get(
+      '/blogs',
+      category ? { category } : undefined
+    ),
+
   get: (slug) => api.get(`/blogs/${slug}`),
 };
 
@@ -52,61 +85,119 @@ export const testimonialsApi = {
 };
 
 export const bannersApi = {
-  list: (placement) => api.get('/banners', placement ? { placement } : undefined),
+  list: (placement) =>
+    api.get(
+      '/banners',
+      placement ? { placement } : undefined
+    ),
 };
 
 export const reviewsApi = {
-  forProduct: (productId) => api.get(`/reviews/product/${productId}`),
-  create: (payload) => api.post('/reviews', payload),
+  forProduct: (productId) =>
+    api.get(`/reviews/product/${productId}`),
+
+  create: (payload) =>
+    api.post('/reviews', payload),
 };
 
-// NOTE: add/update/remove now all pass variantId through to the backend.
-// Without this, the backend has no way to know which variant of a product
-// was selected — cart items with variants (length/colour/etc.) would fall
-// back to the base product's (often empty) price/length/color fields.
 export const cartApi = {
   get: () => api.get('/cart'),
-  add: (productId, qty = 1, variantId = null) => api.post('/cart', { productId, qty, variantId }),
-  update: (productId, qty, variantId = null) => api.put(`/cart/${productId}`, { qty, variantId }),
-  remove: (productId, variantId = null) => api.del(`/cart/${productId}`, { variantId }),
+
+  add: (productId, qty = 1, variantId = null) =>
+    api.post('/cart', {
+      productId,
+      qty,
+      variantId,
+    }),
+
+  update: (
+    productId,
+    qty,
+    variantId = null
+  ) =>
+    api.put(`/cart/${productId}`, {
+      qty,
+      variantId,
+    }),
+
+  remove: (
+    productId,
+    variantId = null
+  ) =>
+    api.del(`/cart/${productId}`, {
+      variantId,
+    }),
 };
 
 export const wishlistApi = {
   get: () => api.get('/wishlist'),
-  toggle: (productId) => api.post('/wishlist/toggle', { productId }),
+
+  toggle: (productId) =>
+    api.post('/wishlist/toggle', {
+      productId,
+    }),
 };
 
 export const couponsApi = {
-  apply: (code, subtotal) => api.post('/coupons/apply', { code, subtotal }),
+  apply: (code, subtotal) =>
+    api.post('/coupons/apply', {
+      code,
+      subtotal,
+    }),
 };
 
 export const ordersApi = {
-  create: (payload) => api.post('/orders', payload),
-  mine: () => api.get('/orders/my'),
-  get: (idOrOrderNumber) => api.get(`/orders/${idOrOrderNumber}`),
+  create: (payload) =>
+    api.post('/orders', payload),
+
+  mine: () =>
+    api.get('/orders/my'),
+
+  get: (idOrOrderNumber) =>
+    api.get(`/orders/${idOrOrderNumber}`),
 };
 
 export const paymentsApi = {
-  status: () => api.get('/payments/razorpay/status'),
-  createOrder: (orderId) => api.post('/payments/razorpay/order', { orderId }),
-  verify: (payload) => api.post('/payments/razorpay/verify', payload),
+  status: () =>
+    api.get('/payments/razorpay/status'),
+
+  createOrder: (orderId) =>
+    api.post('/payments/razorpay/order', {
+      orderId,
+    }),
+
+  verify: (payload) =>
+    api.post('/payments/razorpay/verify', payload),
 };
 
 export const usersApi = {
-  updateProfile: (payload) => api.put('/users/profile', payload),
-  addAddress: (payload) => api.post('/users/addresses', payload),
-  updateAddress: (addressId, payload) => api.put(`/users/addresses/${addressId}`, payload),
-  deleteAddress: (addressId) => api.del(`/users/addresses/${addressId}`),
+  updateProfile: (payload) =>
+    api.put('/users/profile', payload),
+
+  addAddress: (payload) =>
+    api.post('/users/addresses', payload),
+
+  updateAddress: (addressId, payload) =>
+    api.put(
+      `/users/addresses/${addressId}`,
+      payload
+    ),
+
+  deleteAddress: (addressId) =>
+    api.del(`/users/addresses/${addressId}`),
 };
 
 export const contactApi = {
-  submit: (payload) => api.post('/contact', payload),
+  submit: (payload) =>
+    api.post('/contact', payload),
 };
 
 export const wholesaleApi = {
-  submit: (payload) => api.post('/wholesale', payload),
+  submit: (payload) =>
+    api.post('/wholesale', payload),
 };
 
 export const newsletterApi = {
-  subscribe: (email) => api.post('/newsletter/subscribe', { email }),
+  subscribe: (email) =>
+    api.post('/newsletter/subscribe', { email }),
 };

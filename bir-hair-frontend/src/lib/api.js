@@ -52,7 +52,11 @@ export const api = {
   get: (path, params) => request(path, { params }),
   post: (path, body) => request(path, { method: 'POST', body }),
   put: (path, body) => request(path, { method: 'PUT', body }),
-  del: (path) => request(path, { method: 'DELETE' }),
+  del: (path, params) =>
+  request(path, {
+    method: 'DELETE',
+    params,
+  }),
 };
 
 // Resolves an image path returned by the backend (e.g. "/uploads/xyz.png")

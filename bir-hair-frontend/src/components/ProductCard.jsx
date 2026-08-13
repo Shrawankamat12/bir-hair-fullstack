@@ -104,16 +104,33 @@ export default function ProductCard({ product, style, onQuickView }) {
               {rupee(product.price)}
             </span>
           </div>
-          <button
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-600 text-white hover:bg-pink-700 transition"
-            onClick={(e) => {
-              e.preventDefault();
-              addToCart(product);
-            }}
-            aria-label="Add to cart"
-          >
-            <FiShoppingCart />
-          </button>
+
+          {/* Variant products need a length/color chosen before price/stock
+              is known — the listing API doesn't send full variant data, and
+              the backend resolves price purely from variantId. So quick-add
+              only works for simple products; variant products go to the PDP
+              where ProductDetail.jsx resolves the selected variant properly. */}
+          {product.hasVariants ? (
+            <Link
+              to={`/product/${product.id}`}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-600 text-white hover:bg-pink-700 transition"
+              aria-label="Select options"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FiShoppingCart />
+            </Link>
+          ) : (
+            <button
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-600 text-white hover:bg-pink-700 transition"
+              onClick={(e) => {
+                e.preventDefault();
+                addToCart(product);
+              }}
+              aria-label="Add to cart"
+            >
+              <FiShoppingCart />
+            </button>
+          )}
         </div>
 
         <div className="flex items-center justify-between text-xs text-gray-500">
