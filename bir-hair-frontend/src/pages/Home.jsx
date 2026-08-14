@@ -479,12 +479,18 @@ export default function Home() {
     lg:translate-x-0
   "
 >
+  {/* FIX: was `bottom-25`, which shoved the photo 100px above the
+      container's own floor. With the outer <section> clipping via
+      overflow-hidden, that upward shove is exactly what was cutting
+      the model off (no legs/lower body visible). Anchoring flush at
+      bottom-0 lets object-contain show the full image within the
+      container's height, uncropped. */}
   <img
     src={resolveImageUrl(hero.image) || heroModel}
     alt="Luxury hair model"
     className="
       absolute
-      bottom-25
+      bottom-0
       left-1/2
       h-full
       w-auto
@@ -569,49 +575,15 @@ export default function Home() {
     </div>
   </div>
 </div>
-          {/* Customer avatars */}
-          <div className="flex -space-x-2">
-            {[1, 2, 3].map((item) => (
-              <div
-                key={item}
-                className="
-                  flex
-                  h-7
-                  w-7
-                  items-center
-                  justify-center
-                  overflow-hidden
-                  rounded-full
-                  border-2
-                  border-white
-                  bg-[#f1b19b]
-                  text-[9px]
-                  font-bold
-                  text-white
-                  sm:h-8
-                  sm:w-8
-                "
-              >
-                👩🏽
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col">
-            <span className="text-[8px] font-bold text-[#302930] sm:text-[9px]">
-              Trusted by 50K+
-            </span>
-
-            <span className="text-[8px] text-[#81757c]">
-              Happy Customers
-            </span>
-
-            <div className="mt-0.5 text-[9px] tracking-[1px] text-[#ffae00]">
-              ★★★★★
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* FIX: removed a duplicate, unwrapped copy of the "Customer
+          avatars" + "Trusted by 50K+" block that used to sit here,
+          outside of any absolute/positioned container. It rendered
+          as loose floating circles + text near the decorative leaf
+          at the bottom-left of the hero instead of the intended
+          rating card (which already exists above, correctly
+          positioned inside the pink circle). */}
+    </div>
+  </div>
 </section>
 
 
