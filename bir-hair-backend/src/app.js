@@ -13,7 +13,41 @@ const app = express();
 
 // --- security & hardening (new in Phase 1, all additive) ---
 app.use(helmetMiddleware);
-app.use(cors({ origin: [process.env.CLIENT_URL, process.env.ADMIN_URL], credentials: true }));
+
+// FIX: CORS was only reading a single CLIENT_URL / ADMIN_URL env var each. If
+// either was unset (or set to a stale/old Vercel URL) on Render, the origin
+// array ended up empty/undefined or wrong, so the browser blocked every
+// request with "No 'Access-Control-Allow-Origin' header is present". This
+// now supports multiple, comma-separated origins per env var (so you can
+// list every Vercel deployment URL, e.g. the project's default domain and
+// any preview/alias domains), trims whitespace, drops empty entries, and
+// always allows requests with no Origin header (curl, server-to-server,
+// same-origin) instead of rejecting them.
+const parseOrigins = (value) =>
+  (value || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+const allowedOrigins = [
+  ...parseOrigins(process.env.CLIENT_URL),
+  ...parseOrigins(process.env.ADMIN_URL),
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        logger.warn(`Blocked by CORS: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(compression());
 
 app.use(express.json({ limit: '2mb' }));
