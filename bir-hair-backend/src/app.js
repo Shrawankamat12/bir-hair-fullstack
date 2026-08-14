@@ -34,6 +34,15 @@ const allowedOrigins = [
   ...parseOrigins(process.env.ADMIN_URL),
 ];
 
+// TEMP DEBUG: prints the resolved list on every boot so it's visible in
+// Render's Logs tab — remove once CORS is confirmed working. If this array
+// is empty or doesn't exactly match your Vercel URL (protocol, no trailing
+// slash), that confirms the env vars on Render are unset/wrong — fix them
+// in Render → Environment, not in this file.
+console.log('CORS allowedOrigins:', allowedOrigins);
+console.log('raw CLIENT_URL env:', JSON.stringify(process.env.CLIENT_URL));
+console.log('raw ADMIN_URL env:', JSON.stringify(process.env.ADMIN_URL));
+
 app.use(
   cors({
     origin: (origin, callback) => {
