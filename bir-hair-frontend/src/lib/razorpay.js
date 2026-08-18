@@ -11,10 +11,13 @@ function loadRazorpayScript() {
 
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
 
     script.onload = () => resolve(true);
-    script.onerror = () =>
+    script.onerror = () => {
+      scriptPromise = null;
       reject(new Error('Could not load Razorpay checkout'));
+    };
 
     document.body.appendChild(script);
   });
@@ -22,16 +25,6 @@ function loadRazorpayScript() {
   return scriptPromise;
 }
 
-/**
- * Opens Razorpay Checkout.
- *
- * Resolves with:
- * {
- *   razorpayPaymentId,
- *   razorpayOrderId,
- *   razorpaySignature
- * }
- */
 export async function openRazorpayCheckout({
   keyId,
   amount,
@@ -45,19 +38,33 @@ export async function openRazorpayCheckout({
 }) {
   await loadRazorpayScript();
 
+  if (!window.Razorpay) {
+    throw new Error('Razorpay Checkout could not be loaded');
+  }
+
+  if (!keyId) {
+    throw new Error('Razorpay Key ID is missing');
+  }
+
+  if (!razorpayOrderId) {
+    throw new Error('Razorpay Order ID is missing');
+  }
+
   return new Promise((resolve, reject) => {
+    let completed = false;
+
     const options = {
       key: keyId,
 
-      amount,
+      amount: Number(amount),
 
-      currency,
+      currency: currency || 'INR',
 
       order_id: razorpayOrderId,
 
       name: 'B.I.R Hair India Factory',
 
-      description: `Order ${orderNumber}`,
+      description: `Order ${orderNumber || ''}`,
 
       prefill: {
         name: name || '',
@@ -65,21 +72,21 @@ export async function openRazorpayCheckout({
         contact: contact || '',
       },
 
+      notes: {
+        order_number: orderNumber || '',
+      },
+
       theme: {
         color: '#C9A227',
       },
 
-      /*
-       * Razorpay Checkout payment-method configuration.
-       *
-       * This tells Checkout which major payment categories
-       * should be available.
-       */
+      // Razorpay will show the available payment methods
+      // according to your Razorpay account configuration.
       config: {
         display: {
           blocks: {
-            preferred: {
-              name: 'Pay using',
+            banks: {
+              name: 'Recommended Payment Methods',
               instruments: [
                 {
                   method: 'upi',
@@ -97,7 +104,13 @@ export async function openRazorpayCheckout({
             },
           },
 
-          sequence: ['block.preferred'],
+          sequence: [
+            'block.banks',
+            'upi',
+            'card',
+            'netbanking',
+            'wallet',
+          ],
 
           preferences: {
             show_default_blocks: true,
@@ -105,7 +118,9 @@ export async function openRazorpayCheckout({
         },
       },
 
-      handler: (response) => {
+      handler: function (response) {
+        completed = true;
+
         resolve({
           razorpayPaymentId: response.razorpay_payment_id,
           razorpayOrderId: response.razorpay_order_id,
@@ -114,38 +129,32 @@ export async function openRazorpayCheckout({
       },
 
       modal: {
-        ondismiss: () => {
-          reject(new Error('Payment cancelled'));
+        ondismiss: function () {
+          if (!completed) {
+            reject(new Error('Payment cancelled'));
+          }
         },
       },
     };
 
-    /*
-     * If user selected a payment category on our checkout page,
-     * try to open that category first.
-     *
-     * Razorpay still controls which methods are actually available.
-     */
-    if (
-      method === 'upi' ||
-      method === 'card' ||
-      method === 'netbanking' ||
-      method === 'wallet'
-    ) {
-      options.config.display.preferences = {
-        show_default_blocks: true,
-      };
+    try {
+      const rzp = new window.Razorpay(options);
+
+      rzp.on('payment.failed', function (response) {
+        reject(
+          new Error(
+            response?.error?.description ||
+              response?.error?.reason ||
+              'Payment failed'
+          )
+        );
+      });
+
+      rzp.open();
+    } catch (error) {
+      reject(
+        new Error(error?.message || 'Unable to open Razorpay Checkout')
+      );
     }
-
-    const rzp = new window.Razorpay(options);
-
-    rzp.on('payment.failed', (response) => {
-      const description =
-        response?.error?.description || 'Payment failed';
-
-      reject(new Error(description));
-    });
-
-    rzp.open();
   });
 }
