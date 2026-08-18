@@ -307,7 +307,7 @@ export default function Checkout() {
                           active={shipMethod === 'standard'}
                           onClick={() => setShipMethod('standard')}
                           title="Standard Shipping"
-                          sub={`3–6 business days · ${cartSubtotal > 15000 ? 'Free' : rupee(499)}`}
+                          sub={`3–6 business days · ${cartSubtotal > 15000 ? 'Free' : rupee(10)}`}
                           icon={FiTruck}
                         />
                         <RadioCard
