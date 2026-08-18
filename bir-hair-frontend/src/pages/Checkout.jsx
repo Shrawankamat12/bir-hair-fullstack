@@ -1,7 +1,20 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiCheck, FiTruck, FiCreditCard, FiSmartphone, FiPackage, FiLock, FiMapPin, FiChevronRight } from 'react-icons/fi';
+import {
+  FiCheck,
+  FiTruck,
+  FiCreditCard,
+  FiSmartphone,
+  FiPackage,
+  FiLock,
+  FiMapPin,
+  FiChevronRight,
+  FiGlobe,
+  FiBriefcase,
+  FiClock,
+  FiCalendar,
+} from 'react-icons/fi';
 import PageHeader from '../components/PageHeader';
 import { useStore } from '../context/StoreContext';
 import { rupee } from '../lib/format';
@@ -14,6 +27,18 @@ const STEPS = [
   { label: 'Shipping', icon: FiTruck },
   { label: 'Payment', icon: FiCreditCard },
   { label: 'Review', icon: FiPackage },
+];
+
+// All payment options Razorpay Checkout supports out of the box.
+// COD is kept separate — it's a store-level option, not a Razorpay method.
+const PAYMENT_OPTIONS = [
+  { id: 'card', title: 'Credit / Debit Card', sub: 'Visa, Mastercard, RuPay, Amex accepted', icon: FiCreditCard },
+  { id: 'upi', title: 'UPI', sub: 'GPay, PhonePe, Paytm, BHIM & more', icon: FiSmartphone },
+  { id: 'netbanking', title: 'Netbanking', sub: 'All major Indian banks supported', icon: FiGlobe },
+  { id: 'wallet', title: 'Wallets', sub: 'Paytm, Mobikwik, Freecharge, Amazon Pay', icon: FiBriefcase },
+  { id: 'emi', title: 'EMI', sub: 'Card & cardless EMI options', icon: FiCalendar },
+  { id: 'paylater', title: 'Pay Later', sub: 'Simpl, LazyPay, ICICI PayLater & more', icon: FiClock },
+  { id: 'cod', title: 'Cash on Delivery', sub: 'Pay when your order arrives', icon: FiPackage },
 ];
 
 const emptyAddress = { fullName: '', phone: '', email: '', line1: '', city: '', state: '', pincode: '', country: 'India' };
@@ -133,6 +158,9 @@ export default function Checkout() {
           name: address.fullName,
           email: address.email,
           contact: address.phone,
+          // Preselect the method tab in Razorpay's checkout modal
+          // based on what the user picked on this page.
+          method: payMethod,
         });
         await paymentsApi.verify({ orderId: order._id, ...result });
       }
@@ -323,27 +351,16 @@ export default function Checkout() {
                     {/* ============ STEP 2 — PAYMENT ============ */}
                     {step === 2 && (
                       <div className="flex flex-col gap-3">
-                        <RadioCard
-                          active={payMethod === 'card'}
-                          onClick={() => setPayMethod('card')}
-                          title="Credit / Debit Card"
-                          sub="Visa, Mastercard, RuPay accepted"
-                          icon={FiCreditCard}
-                        />
-                        <RadioCard
-                          active={payMethod === 'upi'}
-                          onClick={() => setPayMethod('upi')}
-                          title="UPI"
-                          sub="GPay, PhonePe, Paytm"
-                          icon={FiSmartphone}
-                        />
-                        <RadioCard
-                          active={payMethod === 'cod'}
-                          onClick={() => setPayMethod('cod')}
-                          title="Cash on Delivery"
-                          sub="Pay when your order arrives"
-                          icon={FiPackage}
-                        />
+                        {PAYMENT_OPTIONS.map((opt) => (
+                          <RadioCard
+                            key={opt.id}
+                            active={payMethod === opt.id}
+                            onClick={() => setPayMethod(opt.id)}
+                            title={opt.title}
+                            sub={opt.sub}
+                            icon={opt.icon}
+                          />
+                        ))}
                         <div className="mt-1 flex items-center gap-2 rounded-lg bg-[#fff5f8] px-3 py-2.5 text-xs text-gray-500">
                           <FiLock className="text-[#ef6c9d]" size={13} />
                           256-bit SSL secured · PCI-DSS compliant payment gateway
@@ -372,7 +389,9 @@ export default function Checkout() {
                         </div>
                         <div className="flex justify-between py-2.5 text-gray-600">
                           <span>Payment Method</span>
-                          <span className="font-medium capitalize text-gray-900">{payMethod}</span>
+                          <span className="font-medium capitalize text-gray-900">
+                            {PAYMENT_OPTIONS.find((o) => o.id === payMethod)?.title || payMethod}
+                          </span>
                         </div>
                         <div className="flex justify-between py-2.5 text-gray-600">
                           <span>Deliver To</span>
