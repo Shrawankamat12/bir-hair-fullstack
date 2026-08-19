@@ -38,7 +38,7 @@ class OrderService extends BaseService {
 
     const subtotal = processedItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
     const productDiscount = processedItems.reduce((sum, i) => sum + i.discount * i.quantity, 0);
-    const shippingCharge = shippingMethod === 'express' ? 999 : subtotal > 15000 ? 0 : 499;
+    const shippingCharge = shippingMethod === 'express' ? 999 : subtotal > 15000 ? 0 : 15;
     const grandTotal = subtotal - productDiscount - couponDiscount + shippingCharge;
 
     return this.repository.create({
