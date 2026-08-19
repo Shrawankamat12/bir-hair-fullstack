@@ -50,6 +50,30 @@ export async function openRazorpayCheckout({
     throw new Error('Razorpay Order ID is missing');
   }
 
+  /*
+   * Map our store's selected payment method (from the
+   * checkout page's own radio cards: card / upi / netbanking / wallet)
+   * to the Razorpay Checkout "instrument" config.
+   *
+   * This is what makes Razorpay open showing ONLY the method
+   * the customer picked on our own checkout page, instead of
+   * always showing every method.
+   */
+  const methodInstrumentMap = {
+    card: [{ method: 'card' }],
+    upi: [{ method: 'upi' }],
+    netbanking: [{ method: 'netbanking' }],
+    wallet: [{ method: 'wallet' }],
+  };
+
+  const instruments =
+    methodInstrumentMap[method] || [
+      { method: 'upi' },
+      { method: 'card' },
+      { method: 'netbanking' },
+      { method: 'wallet' },
+    ];
+
   return new Promise((resolve, reject) => {
     let completed = false;
 
@@ -80,40 +104,25 @@ export async function openRazorpayCheckout({
         color: '#C9A227',
       },
 
-      // Razorpay will show the available payment methods
-      // according to your Razorpay account configuration.
+      /*
+       * Only show the instrument(s) matching the method
+       * the customer selected on our own checkout page.
+       * If no valid method is passed, fall back to showing
+       * all standard methods (safety net).
+       */
       config: {
         display: {
           blocks: {
-            banks: {
-              name: 'Recommended Payment Methods',
-              instruments: [
-                {
-                  method: 'upi',
-                },
-                {
-                  method: 'card',
-                },
-                {
-                  method: 'netbanking',
-                },
-                {
-                  method: 'wallet',
-                },
-              ],
+            selected: {
+              name: 'Pay using',
+              instruments,
             },
           },
 
-          sequence: [
-            'block.banks',
-            'upi',
-            'card',
-            'netbanking',
-            'wallet',
-          ],
+          sequence: ['block.selected'],
 
           preferences: {
-            show_default_blocks: true,
+            show_default_blocks: false,
           },
         },
       },
