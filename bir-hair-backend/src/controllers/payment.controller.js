@@ -15,7 +15,7 @@ exports.createRazorpayOrder = asyncHandler(async (req, res) => {
   const order = await orderService.getByIdOrOrderNumber(req.body.orderId);
   if (order.paymentStatus === 'paid') throw new AppError('This order has already been paid', 400);
 
-  const rpOrder = await paymentService.createRazorpayOrder(order.total, order.orderNumber);
+const rpOrder = await paymentService.createRazorpayOrder(order.pricing.grandTotal, order.orderNumber);
   await orderService.updateById(order._id, { razorpayOrderId: rpOrder.id });
 
   res.json({
