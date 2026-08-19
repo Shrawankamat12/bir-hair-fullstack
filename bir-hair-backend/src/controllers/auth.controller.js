@@ -3,7 +3,7 @@ const authService = require('../services/auth.service');
 
 const cookieOptions = {
   httpOnly: true,
-  sameSite: 'lax',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   secure: process.env.NODE_ENV === 'production',
 };
 
