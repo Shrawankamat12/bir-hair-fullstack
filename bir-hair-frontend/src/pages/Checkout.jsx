@@ -175,7 +175,7 @@ export default function Checkout() {
       ? 999
       : cartSubtotal > 15000
       ? 0
-      : 499;
+      : 15;
 
   /*
    * Coupon discount.
