@@ -15,7 +15,7 @@ export default function Cart() {
 
   const discount = cartMrpTotal - cartSubtotal;
   const couponDiscount = appliedCoupon?.discount || 0;
-  const shipping = cart.length === 0 ? 0 : (cartSubtotal > 15000 ? 0 : 499);
+const shipping = cart.length === 0 ? 0 : (cartSubtotal > 15000 ? 0 : 15);
   const total = Math.max(0, cartSubtotal - couponDiscount) + shipping;
 
   async function handleApply() {
