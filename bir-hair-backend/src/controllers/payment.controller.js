@@ -12,6 +12,7 @@ exports.getStatus = asyncHandler(async (req, res) => {
 // POST /api/v1/payments/razorpay/order  { orderId }
 // Creates a Razorpay order against an existing (pending) B.I.R order.
 exports.createRazorpayOrder = asyncHandler(async (req, res) => {
+  console.log('ORDER DEBUG:', JSON.stringify(order.pricing));
   const order = await orderService.getByIdOrOrderNumber(req.body.orderId);
   if (order.paymentStatus === 'paid') throw new AppError('This order has already been paid', 400);
 
