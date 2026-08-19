@@ -170,12 +170,7 @@ export default function Checkout() {
   /*
    * Shipping calculation.
    */
-  const shippingCost =
-    shipMethod === 'express'
-      ? 999
-      : cartSubtotal > 15000
-      ? 0
-      : 499;
+  const shipping = cart.length === 0 ? 0 : (cartSubtotal > 15000 ? 0 : 15);
 
   /*
    * Coupon discount.
