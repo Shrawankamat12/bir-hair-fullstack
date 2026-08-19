@@ -94,7 +94,8 @@ export default function Navbar() {
       <div className="nav-announce">
         <div className="container nav-announce-inner nav-announce-split">
           <span className="nav-announce-left">
-            <FiPhone size={16} /> <span>+1 (234) 567-8900</span>
+            <FiPhone size={16} /> <span>+91 9217411126</span>
+            <span>+91 9999274990</span>
             <span className="nav-announce-sep" />
             <FiTruck size={16} />
             <AnimatePresence mode="wait">
