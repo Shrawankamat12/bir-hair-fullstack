@@ -34,9 +34,6 @@ export default function Navbar() {
   const { cartCount, wishlist, user } = useStore();
   const navigate = useNavigate();
 
-  // Publish the navbar's live height as a CSS var so sticky in-page toolbars
-  // (e.g. the Shop filter/sort bar) can offset themselves correctly instead
-  // of guessing a fixed pixel value.
   useEffect(() => {
     function publishHeight() {
       const h = hidden ? 0 : (headerRef.current?.offsetHeight || 0);
@@ -94,7 +91,9 @@ export default function Navbar() {
       <div className="nav-announce">
         <div className="container nav-announce-inner nav-announce-split">
           <span className="nav-announce-left">
-            <FiPhone size={16} /> <span>+91 9217411126</span>
+            <FiPhone size={16} />
+            <span>+91 9217411126</span>
+            <span className="nav-announce-sep" />
             <span>+91 9999274990</span>
             <span className="nav-announce-sep" />
             <FiTruck size={16} />
@@ -110,10 +109,10 @@ export default function Navbar() {
               </motion.span>
             </AnimatePresence>
           </span>
-          <span className="nav-announce-right">
+          <span className="nav-announce-right" style={{ paddingRight: 18 }}>
             <Link to="/faq">Help Center</Link>
             <span className="nav-announce-sep" />
-            <Link to="/account">Track Order</Link>
+            <Link to="/account" style={{ marginRight: 6 }}>Track Order</Link>
           </span>
         </div>
       </div>
@@ -125,15 +124,56 @@ export default function Navbar() {
             <FiMenu size={24} />
           </button>
 
-          <Link to="/" className="nav-logo">
-            <span className="brand-mark nav-brand-mark">
-              <span className="brand-mark-ring" />
-              <span className="brand-mark-letter">B</span>
-            </span>
-            <span className="nav-logo-text">
-              <span className="nav-logo-mark">B.I.R Hair</span>
-              <span className="nav-logo-full">Hair India Factory</span>
-            </span>
+          <Link
+            to="/"
+            className="nav-logo"
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              marginLeft: 28,
+            }}
+          >
+            {/* subtle glow behind the logo for extra shine/attractiveness */}
+            <span
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                left: '50%',
+                top: '50%',
+                width: 170,
+                height: 120,
+                transform: 'translate(-50%, -50%)',
+                background:
+                  'radial-gradient(closest-side, rgba(237,33,101,0.22), rgba(237,33,101,0) 72%)',
+                filter: 'blur(6px)',
+                pointerEvents: 'none',
+                zIndex: 0,
+              }}
+            />
+            <img
+              src="/logo-full.png"
+              alt="B.I.R Hair Factory India"
+              style={{
+                height: 80,
+                width: 'auto',
+                position: 'relative',
+                zIndex: 1,
+                filter:
+                  'drop-shadow(0 6px 14px rgba(226,36,103,0.38)) drop-shadow(0 1px 0 rgba(255,255,255,0.25))',
+                transition: 'transform 260ms ease, filter 260ms ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.045)';
+                e.currentTarget.style.filter =
+                  'drop-shadow(0 8px 18px rgba(226,36,103,0.5)) drop-shadow(0 1px 0 rgba(255,255,255,0.3))';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.filter =
+                  'drop-shadow(0 6px 14px rgba(226,36,103,0.38)) drop-shadow(0 1px 0 rgba(255,255,255,0.25))';
+              }}
+            />
           </Link>
 
           <form className="nav-search-inline" onSubmit={submitSearch}>
@@ -196,7 +236,6 @@ export default function Navbar() {
                       <FiChevronDown size={16} className="nav-chevron" style={{ transform: megaOpen ? 'rotate(180deg)' : 'none', transition: 'transform 220ms ease', marginLeft: 4 }} />
                     </NavLink>
 
-                    {/* ===== Redesigned mega dropdown (no images, Tailwind, pink theme) ===== */}
                     <div
                       className={`
                         absolute left-0 top-full z-40 ml-6 mt-3 w-[680px]
@@ -257,11 +296,7 @@ export default function Navbar() {
       <aside className={`nav-drawer ${drawerOpen ? 'open' : ''}`}>
         <div className="nav-drawer-top">
           <span className="nav-logo">
-            <span className="brand-mark nav-brand-mark" style={{ '--bm-size': '36px' }}>
-              <span className="brand-mark-ring" />
-              <span className="brand-mark-letter">B</span>
-            </span>
-            <span className="nav-logo-mark">B.I.R</span>
+            <img src="/logo-full.png" alt="B.I.R Hair Factory India" style={{ height: 46, width: 'auto' }} />
           </span>
           <button aria-label="Close menu" onClick={() => setDrawerOpen(false)} className="nav-drawer-close"><FiX size={22} /></button>
         </div>

@@ -144,8 +144,8 @@ export default function Home() {
   const coupon = sc?.couponBanner || {};
   const faqTeaser = sc?.faqTeaser || {};
   const faqItems = faqTeaser.items?.length ? faqTeaser.items : [
-    { q: 'How long does shipping take?', a: 'Orders are usually delivered within 3-5 business days.' },
-    { q: 'Can I return or exchange my order?', a: 'Yes, we offer 30 days return & exchange policy.' },
+    { q: 'What are your shipping charges?', a: 'Shipping charges apply on all orders — see Shipping & Delivery for details.' },
+    { q: 'Can I return or exchange my order?', a: 'We currently do not offer returns, exchanges, or refunds. Please review product details carefully before ordering.' },
     { q: 'How do I care for my hair?', a: 'Treat it like your own hair and use sulfate-free products.' },
     { q: 'Is your hair 100% human hair?', a: 'Yes, all our hair is 100% virgin human hair.' },
   ];
