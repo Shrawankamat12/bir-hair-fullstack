@@ -405,32 +405,62 @@ export default function ProductDetail() {
                   </ul>
                 )}
 
-                <form className="pdp-review-form" onSubmit={submitReview} style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10, maxWidth: 480 }}>
-                  <span className="eyebrow">Write a Review</span>
-                  <div className="pdp-chip-row">
-                    {[5, 4, 3, 2, 1].map((n) => (
-                      <button
-                        type="button"
-                        key={n}
-                        className={`pdp-chip ${reviewForm.rating === n ? 'active' : ''}`}
-                        onClick={() => setReviewForm((f) => ({ ...f, rating: n }))}
-                      >
-                        {n}★
-                      </button>
-                    ))}
-                  </div>
-                  <textarea
-                    placeholder="Share your experience with this product…"
-                    value={reviewForm.comment}
-                    onChange={(e) => setReviewForm((f) => ({ ...f, comment: e.target.value }))}
-                    rows={3}
-                    required
-                    style={{ padding: 10, borderRadius: 10, border: '1px solid #ddd', font: 'inherit' }}
-                  />
-                  <button type="submit" className="btn btn-gold btn-sm" disabled={submittingReview} style={{ alignSelf: 'flex-start' }}>
-                    {submittingReview ? 'Submitting…' : user ? 'Submit Review' : 'Sign in to Review'}
-                  </button>
-                </form>
+                ```jsx
+<form
+  className="pdp-review-form mt-5 flex max-w-[480px] flex-col gap-3"
+  onSubmit={submitReview}
+>
+  <span className="eyebrow">Write a Review</span>
+
+  <div className="flex flex-wrap gap-2">
+    {[5, 4, 3, 2, 1].map((n) => (
+      <button
+        type="button"
+        key={n}
+        onClick={() =>
+          setReviewForm((f) => ({
+            ...f,
+            rating: n,
+          }))
+        }
+        className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+          reviewForm.rating === n
+            ? 'border-[#ef6c9d] bg-[#ef6c9d] text-white shadow-md'
+            : 'border-[#e5d5dc] bg-white text-gray-700 hover:border-[#ef6c9d] hover:bg-[#fff0f5] hover:text-[#d94f83] hover:shadow-sm'
+        }`}
+      >
+        {n}★
+      </button>
+    ))}
+  </div>
+
+  <textarea
+    placeholder="Share your experience with this product…"
+    value={reviewForm.comment}
+    onChange={(e) =>
+      setReviewForm((f) => ({
+        ...f,
+        comment: e.target.value,
+      }))
+    }
+    rows={3}
+    required
+    className="w-full resize-none rounded-[10px] border border-[#ddd] p-[10px] font-inherit outline-none transition-all focus:border-[#ef6c9d] focus:ring-2 focus:ring-[#ef6c9d]/20"
+  />
+
+  <button
+    type="submit"
+    disabled={submittingReview}
+    className="self-start rounded-lg bg-[#ef6c9d] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#d95788] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+  >
+    {submittingReview
+      ? 'Submitting…'
+      : user
+        ? 'Submit Review'
+        : 'Sign in to Review'}
+  </button>
+</form>
+
               </div>
             )}
           </div>
