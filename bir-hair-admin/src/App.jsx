@@ -60,6 +60,7 @@ export default function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AdminLayout />}>
+
           <Route path="/" element={<Dashboard />} />
 
           <Route path="/products" element={<ProductList />} />
@@ -113,6 +114,7 @@ export default function App() {
           <Route path="/messages" element={<ContactMessages />} />
           <Route path="/newsletter" element={<NewsletterList />} />
           <Route path="/site-content" element={<SiteContentEditor />} />
+
         </Route>
       </Route>
     </Routes>
