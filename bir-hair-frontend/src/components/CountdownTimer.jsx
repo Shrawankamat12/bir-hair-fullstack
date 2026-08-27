@@ -10,9 +10,15 @@ function getRemaining(target) {
 }
 
 export default function CountdownTimer({ hours = 8, endsAt }) {
-  // If the admin has set a real Flash Sale end date/time on the product, count down to that.
-  // Otherwise fall back to the original rolling "N hours from now" behaviour.
-  const [target] = useState(() => (endsAt ? new Date(endsAt).getTime() : Date.now() + hours * 3.6e6));
+  // If the admin has set a real Flash Sale end date/time, count down to that —
+  // but only if it's a valid date AND still in the future. Otherwise fall back
+  // to a rolling "N hours from now" timer instead of freezing at 00:00:00.
+  const [target] = useState(() => {
+    const parsed = endsAt ? new Date(endsAt).getTime() : NaN;
+    const isValidFuture = !Number.isNaN(parsed) && parsed > Date.now();
+    return isValidFuture ? parsed : Date.now() + hours * 3.6e6;
+  });
+
   const [t, setT] = useState(() => getRemaining(target));
 
   useEffect(() => {
