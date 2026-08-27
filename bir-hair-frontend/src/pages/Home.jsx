@@ -775,15 +775,15 @@ export default function Home() {
   )}
 
   {sectionEnabled("flashSale") && dealOfDay && (
-    <div
-      className="card self-start p-0 pb-6"
-      style={{
-        background:
-          "linear-gradient(180deg, #fff5f8 0%, #ffe3ec 100%)",
-        color: "var(--espresso)",
-        border: "1px solid rgba(226,38,103,0.12)",
-      }}
-    >
+  <div
+    className="card self-start p-0 pb-6 mt-12"  
+    style={{
+      background:
+        "linear-gradient(180deg, #fff5f8 0%, #ffe3ec 100%)",
+      color: "var(--espresso)",
+      border: "1px solid rgba(226,38,103,0.12)",
+    }}
+  >
       <div className="px-6 pt-0">
         <span
           className="eyebrow mb-1 flex items-center gap-1.5"
