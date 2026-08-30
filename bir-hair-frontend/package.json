@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm --prefix ../bir-hair-admin install && npm --prefix ../bir-hair-admin run build && rm -rf public/admin && mkdir -p public/admin && cp -r ../bir-hair-admin/dist/. public/admin/ && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
   },
