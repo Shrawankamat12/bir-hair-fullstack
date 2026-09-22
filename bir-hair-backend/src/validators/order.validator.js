@@ -23,7 +23,7 @@ exports.createOrderRules = [
   body('billingAddress.pincode').if(body('billingAddress').exists()).trim().notEmpty().withMessage('Billing pincode is required'),
 
   body('shippingMethod').optional().isIn(['standard', 'express']).withMessage('Invalid shipping method'),
-  body('paymentMethod').optional().isIn(['card', 'upi', 'netbanking', 'wallet', 'cod']).withMessage('Invalid payment method'),
+  body('paymentMethod').optional().isIn(['online', 'cod']).withMessage('Invalid payment method'),
   body('couponCode').optional().trim(),
   body('couponDiscount').optional().isFloat({ min: 0 }).withMessage('Coupon discount must be a positive number'),
   body('orderSource').optional().isIn(['Website', 'Admin', 'Mobile']).withMessage('Invalid order source'),

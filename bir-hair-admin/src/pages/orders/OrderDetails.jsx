@@ -35,6 +35,8 @@ export default function OrderDetails() {
   const load = () => orderApi.getOne(id).then(setOrder).catch(() => {}).finally(() => setLoading(false));
   useEffect(() => { load(); }, [id]);
 
+  const [markingPaid, setMarkingPaid] = useState(false);
+
   const changeStatus = async (orderStatus) => {
     try {
       await orderApi.update(id, { orderStatus });
@@ -42,6 +44,22 @@ export default function OrderDetails() {
       load();
     } catch {
       toast.error('Could not update order status');
+    }
+  };
+
+  // Manual confirmation step for the Bluevine Payment Link flow: the
+  // customer pays outside our system, so an admin checks the Bluevine
+  // account and then clicks this to flip the order to "Paid".
+  const markAsPaid = async () => {
+    setMarkingPaid(true);
+    try {
+      await orderApi.update(id, { paymentStatus: 'paid' });
+      toast.success('Order marked as Paid');
+      load();
+    } catch {
+      toast.error('Could not update payment status');
+    } finally {
+      setMarkingPaid(false);
     }
   };
 
@@ -171,9 +189,15 @@ export default function OrderDetails() {
           </Card>
           <Card title="Payment">
             <div className="flex flex-col gap-2 text-[13px]">
-              <Row k="Method" v={order.payment?.method || '—'} />
+              <Row k="Method" v={order.payment?.method === 'online' ? 'Bluevine Payment Link' : order.payment?.method || '—'} />
               <Row k="Status" v={<StatusBadge status={order.payment?.status || 'pending'} />} />
+              {order.payment?.paidAt && <Row k="Paid At" v={formatDateTime(order.payment.paidAt)} />}
             </div>
+            {order.payment?.status !== 'paid' && (
+              <Button className="mt-3 w-full" onClick={markAsPaid} loading={markingPaid}>
+                Mark as Paid
+              </Button>
+            )}
           </Card>
         </div>
       </div>

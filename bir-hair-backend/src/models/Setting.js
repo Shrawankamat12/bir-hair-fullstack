@@ -12,7 +12,9 @@ const settingSchema = new mongoose.Schema({
   // Shipping
   freeShippingThreshold: Number, flatShippingRate: Number, shippingZones: String,
   // Payment
-  paymentGateway: String, razorpayKey: String, codEnabled: { type: Boolean, default: true },
+  paymentGateway: { type: String, default: 'Bluevine Payment Link' },
+  bluevinePaymentLink: String,
+  codEnabled: { type: Boolean, default: true },
   // Tax
   taxRate: Number, taxLabel: { type: String, default: 'GST' },
   // Email

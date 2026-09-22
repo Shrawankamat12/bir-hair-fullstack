@@ -19,7 +19,7 @@ const empty = {
   storeName: '', storeEmail: '', storePhone: '', storeAddress: '', logo: '', favicon: '',
   seoTitle: '', seoDescription: '', seoKeywords: '',
   freeShippingThreshold: '', flatShippingRate: '', shippingZones: '',
-  paymentGateway: '', razorpayKey: '', codEnabled: true,
+  paymentGateway: 'Bluevine Payment Link', bluevinePaymentLink: '', codEnabled: true,
   taxRate: '', taxLabel: 'GST',
   smtpHost: '', smtpPort: '', smtpUser: '', smtpFrom: '',
   smsProvider: '', smsApiKey: '',
@@ -80,8 +80,14 @@ export default function Settings() {
           )}
           {tab === 'payment' && (
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Payment Gateway"><Input value={values.paymentGateway} onChange={(e) => set('paymentGateway', e.target.value)} placeholder="Razorpay, Stripe…" /></FormField>
-              <FormField label="Gateway API Key"><Input value={values.razorpayKey} onChange={(e) => set('razorpayKey', e.target.value)} /></FormField>
+              <FormField label="Payment Gateway" className="col-span-2 sm:col-span-1"><Input value={values.paymentGateway} onChange={(e) => set('paymentGateway', e.target.value)} placeholder="Bluevine Payment Link" /></FormField>
+              <FormField
+                label="Bluevine Payment Link"
+                className="col-span-2"
+                hint="Customers are redirected here after placing an order. Orders stay Pending until you mark them Paid manually."
+              >
+                <Input value={values.bluevinePaymentLink} onChange={(e) => set('bluevinePaymentLink', e.target.value)} placeholder="https://pay.bluevine.com/p/…/pay/" />
+              </FormField>
               <div className="col-span-2"><Switch checked={values.codEnabled} onChange={(v) => set('codEnabled', v)} label="Cash on Delivery Enabled" /></div>
             </div>
           )}

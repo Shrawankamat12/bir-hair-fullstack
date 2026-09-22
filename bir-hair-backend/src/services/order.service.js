@@ -68,7 +68,11 @@ class OrderService extends BaseService {
       },
 
       payment: {
-        method: paymentMethod || 'card',
+        // 'online' = Bluevine Payment Link, 'cod' = Cash on Delivery.
+        // Status always starts as 'pending' — for online payments it stays
+        // pending until an admin manually marks it "Paid" after confirming
+        // the payment landed in the Bluevine account.
+        method: paymentMethod || 'online',
         status: 'pending',
       },
 

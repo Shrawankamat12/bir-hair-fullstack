@@ -162,8 +162,9 @@ const orderSchema = new Schema(
     payment: {
       method: {
         type: String,
-        enum: ['card', 'upi', 'netbanking', 'wallet', 'cod'],
-        default: 'card',
+        // 'online' = Bluevine Payment Link (customer pays manually, admin confirms).
+        enum: ['online', 'cod'],
+        default: 'online',
       },
       status: {
         type: String,
@@ -172,9 +173,9 @@ const orderSchema = new Schema(
         index: true,
       },
       transactionId: { type: String },
-      razorpayOrderId: { type: String },
-      razorpayPaymentId: { type: String },
-      razorpaySignature: { type: String },
+      // Set manually by an admin (e.g. Bluevine reference no.) when confirming payment.
+      paymentReference: { type: String },
+      paidAt: { type: Date },
     },
 
     /* ---------------- Shipping ---------------- */
@@ -266,6 +267,9 @@ orderSchema.pre('save', function (next) {
   // Keep derived boolean flags in sync with nested state.
   if (this.isModified('payment.status')) {
     this.isPaid = this.payment.status === 'paid';
+    if (this.isPaid && !this.payment.paidAt) {
+      this.payment.paidAt = new Date();
+    }
   }
   if (this.isModified('orderStatus')) {
     this.isDelivered = this.orderStatus === 'delivered';

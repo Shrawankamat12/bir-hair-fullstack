@@ -253,8 +253,8 @@ export default function OrderInvoice() {
           <div>
             <p className="text-[11px] uppercase tracking-wide text-ink-faint font-semibold mb-3">Payment Details</p>
             <div className="flex flex-col gap-2 text-[13px]">
-              <Row k="Method" v={payment.method ? statusLabel(payment.method) : '—'} />
-              <Row k="Transaction ID" v={payment.transactionId || payment.razorpayPaymentId || '—'} />
+                           <Row k="Method" v={payment.method === 'online' ? 'Bluevine Payment Link' : payment.method ? statusLabel(payment.method) : '—'} />
+              <Row k="Transaction ID" v={payment.transactionId || payment.paymentReference || '—'} />
               <Row k="Status" v={<StatusBadge status={payment.status || 'pending'} />} />
             </div>
           </div>

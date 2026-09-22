@@ -158,8 +158,8 @@ export const ordersApi = {
 };
 
 export const paymentsApi = {
-  status: () =>
-    api.get('/payments/razorpay/status'),
+ status: () =>
+    api.get('/payments/status'),
 
   createOrder: (orderId) =>
     api.post('/payments/razorpay/order', {
