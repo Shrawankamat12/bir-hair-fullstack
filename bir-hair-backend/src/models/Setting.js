@@ -10,13 +10,16 @@ const settingSchema = new mongoose.Schema({
   // SEO
   seoTitle: String, seoDescription: String, seoKeywords: String,
   // Shipping
-  freeShippingThreshold: Number, flatShippingRate: Number, shippingZones: String,
+  freeShippingThreshold: { type: Number, default: 15000 },
+  flatShippingRate: { type: Number, default: 15 },
+  expressShippingRate: { type: Number, default: 999 },
+  shippingZones: String,
   // Payment
   paymentGateway: { type: String, default: 'Bluevine Payment Link' },
   bluevinePaymentLink: String,
   codEnabled: { type: Boolean, default: true },
   // Tax
-  taxRate: Number, taxLabel: { type: String, default: 'GST' },
+  taxRate: { type: Number, default: 0 }, taxLabel: { type: String, default: 'GST' },
   // Email
   smtpHost: String, smtpPort: String, smtpUser: String, smtpFrom: String,
   // SMS

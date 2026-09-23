@@ -13,6 +13,7 @@ import RecentlyViewed from '../components/RecentlyViewed';
 import { ProductGridSkeleton, LineSkeleton, BlockSkeleton } from '../components/Skeletons';
 import { ErrorState } from '../components/StateBlocks';
 import { rupee } from '../lib/format';
+import { BULK_TIERS, getBulkUnitPrice } from '../lib/pricing';
 import { resolveImageUrl } from '../lib/api';
 import { useProduct, useProducts, useProductReviews } from '../hooks/useStoreData';
 import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
@@ -325,19 +326,16 @@ export default function ProductDetail() {
                   <div className="pdp-bulk-row pdp-bulk-head grid grid-cols-3 gap-2 px-4 py-2.5 bg-[#fdeef3] font-semibold text-[#b23763] text-sm">
                     <span>Quantity</span><span>Discount</span><span>Price / Bundle</span>
                   </div>
-                  {[
-                    { qty: '1–2 bundles', off: '—', price: effectivePrice },
-                    { qty: '3–5 bundles', off: '5% off', price: Math.round(effectivePrice * 0.95) },
-                    { qty: '6–10 bundles', off: '10% off', price: Math.round(effectivePrice * 0.9) },
-                    { qty: '11+ bundles', off: '15% off', price: Math.round(effectivePrice * 0.85) },
-                  ].map((row, i) => (
+                  {BULK_TIERS.map((tier, i) => (
                     <div
                       className={`pdp-bulk-row grid grid-cols-3 gap-2 px-4 py-2.5 text-sm ${i % 2 === 1 ? 'bg-[#fff8fa]' : 'bg-white'}`}
-                      key={row.qty}
+                      key={tier.label}
                     >
-                      <span>{row.qty}</span>
-                      <span className="pdp-bulk-off text-emerald-600 font-semibold">{row.off}</span>
-                      <span>{rupee(row.price)}</span>
+                      <span>{tier.label}</span>
+                      <span className="pdp-bulk-off text-emerald-600 font-semibold">
+                        {tier.discountPct ? `${tier.discountPct}% off` : '—'}
+                      </span>
+                      <span>{rupee(getBulkUnitPrice(effectivePrice, tier.minQty))}</span>
                     </div>
                   ))}
                 </div>

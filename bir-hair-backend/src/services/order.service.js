@@ -1,11 +1,96 @@
 const BaseService = require('./base.service');
 const AppError = require('../utils/AppError');
-const { orderRepository } = require('../repositories');
+const { orderRepository, productRepository, inventoryLogRepository } = require('../repositories');
 const generateOrderNumber = require('../utils/generateOrderNumber');
+const settingService = require('./setting.service');
+const couponService = require('./coupon.service');
+
+// Order statuses that mean "the stock is really gone" vs statuses that
+// mean "give it back". Used to decide whether a status change should
+// restock inventory, and to make that restock idempotent.
+const RESTOCK_STATUSES = ['cancelled', 'returned'];
 
 class OrderService extends BaseService {
   constructor() {
     super(orderRepository, 'Order');
+  }
+
+  /** Reads the live Settings document and turns it into the shipping charge for this order. */
+  async _computeShipping(shippingMethod, subtotal, settings) {
+    if (shippingMethod === 'express') {
+      return settings.expressShippingRate ?? 999;
+    }
+    const threshold = settings.freeShippingThreshold ?? 15000;
+    const flatRate = settings.flatShippingRate ?? 15;
+    return subtotal > threshold ? 0 : flatRate;
+  }
+
+  /**
+   * Validates that every item has enough stock. Throws a 400 AppError
+   * naming the first out-of-stock item if not — called before anything
+   * is written, so a failed order never partially decrements stock.
+   */
+  async _assertStockAvailable(items) {
+    for (const item of items) {
+      const product = await productRepository.findById(item.productId);
+      if (!product) throw new AppError(`Product not found: ${item.productName || item.productId}`, 404);
+      if ((product.stock || 0) < item.quantity) {
+        throw new AppError(
+          `"${product.name}" only has ${product.stock || 0} in stock (you requested ${item.quantity})`,
+          400
+        );
+      }
+    }
+  }
+
+  /**
+   * Atomically decrements stock for each item (guarded so it can never go
+   * negative even under concurrent orders) and writes an InventoryLog entry
+   * per product so the admin Inventory page shows exactly why stock moved.
+   */
+  async _decrementStock(items, orderId, userId) {
+    for (const item of items) {
+      const updated = await productRepository.model.findOneAndUpdate(
+        { _id: item.productId, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+
+      if (!updated) {
+        // Someone else's order beat us to the remaining stock between the
+        // pre-check and now — fail loudly instead of overselling silently.
+        throw new AppError(`"${item.productName}" just went out of stock — please remove it and try again`, 409);
+      }
+
+      await inventoryLogRepository.create({
+        product: item.productId,
+        delta: -item.quantity,
+        reason: 'order',
+        stockAfter: updated.stock,
+        adjustedBy: userId || undefined,
+        order: orderId,
+      }).catch(() => {}); // logging failure shouldn't fail the order
+    }
+  }
+
+  /** Adds back stock for every item on an order — used when an order is cancelled/returned. */
+  async _restockItems(order, userId) {
+    for (const item of order.items || []) {
+      const updated = await productRepository.model.findByIdAndUpdate(
+        item.productId,
+        { $inc: { stock: item.quantity } },
+        { new: true }
+      );
+      if (!updated) continue;
+
+      await inventoryLogRepository.create({
+        product: item.productId,
+        delta: item.quantity,
+        reason: 'return',
+        stockAfter: updated.stock,
+        adjustedBy: userId || undefined,
+      }).catch(() => {});
+    }
   }
 
   async createOrder(user, payload) {
@@ -16,9 +101,10 @@ class OrderService extends BaseService {
       shippingMethod,
       paymentMethod,
       couponCode,
-      couponDiscount = 0,
       orderSource = 'Website',
     } = payload;
+
+    if (!items?.length) throw new AppError('Order must contain at least one item', 400);
 
     // Compute per-item pricing (finalPrice = unitPrice - discount, total = finalPrice * quantity)
     const processedItems = items.map((i) => {
@@ -36,12 +122,31 @@ class OrderService extends BaseService {
       };
     });
 
+    // Stock must be available BEFORE we touch the DB for real.
+    await this._assertStockAvailable(processedItems);
+
     const subtotal = processedItems.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
     const productDiscount = processedItems.reduce((sum, i) => sum + i.discount * i.quantity, 0);
-    const shippingCharge = shippingMethod === 'express' ? 999 : subtotal > 15000 ? 0 : 15;
-    const grandTotal = subtotal - productDiscount - couponDiscount + shippingCharge;
+    const netSubtotal = subtotal - productDiscount;
 
-    return this.repository.create({
+    // Coupon: re-validate server-side against the real subtotal (never trust
+    // a client-supplied discount amount) and only NOW consume a usage slot —
+    // a coupon typed into the cart and abandoned must not burn its limit.
+    let couponDiscount = 0;
+    if (couponCode) {
+      const redeemed = await couponService.redeem(couponCode, netSubtotal, user);
+      couponDiscount = redeemed.discount;
+    }
+
+    // Shipping + tax: read live from admin-configured Settings, not hardcoded numbers.
+    const settings = await settingService.get();
+    const taxableAmount = Math.max(0, netSubtotal - couponDiscount);
+    const shippingCharge = await this._computeShipping(shippingMethod, taxableAmount, settings);
+    const tax = Math.round((taxableAmount * (settings.taxRate || 0)) / 100);
+
+    const grandTotal = taxableAmount + shippingCharge + tax;
+
+    const order = await this.repository.create({
       user: user?._id || null,
       isGuest: !user,
       customerName: user?.name || shippingAddress?.fullName,
@@ -60,10 +165,11 @@ class OrderService extends BaseService {
       pricing: {
         subtotal,
         productDiscount,
-        couponCode,
+        couponCode: couponDiscount ? couponCode : undefined,
         couponDiscount,
         shippingCharge,
-        tax: 0,
+        tax,
+        taxRate: settings.taxRate || 0,
         grandTotal,
       },
 
@@ -82,6 +188,12 @@ class OrderService extends BaseService {
 
       isCOD: paymentMethod === 'cod',
     });
+
+    // Stock is only decremented once the order document actually exists,
+    // so we always have an order to point the InventoryLog entries at.
+    await this._decrementStock(processedItems, order._id, user?._id);
+
+    return order;
   }
 
   async getMyOrders(userId) {
@@ -127,11 +239,14 @@ class OrderService extends BaseService {
     return this.decorate(order);
   }
 
-  async updateStatus(id, { status, orderStatus, trackingNumber, trackingId, paymentStatus }) {
+  async updateStatus(id, { status, orderStatus, trackingNumber, trackingId, paymentStatus }, userId) {
     const order = await this.repository.model.findById(id);
     if (!order) throw new AppError('Order not found', 404);
 
-    if (orderStatus || status) order.orderStatus = orderStatus || status;
+    const previousStatus = order.orderStatus;
+    const nextStatus = orderStatus || status;
+
+    if (nextStatus) order.orderStatus = nextStatus;
     if (trackingNumber || trackingId) {
       order.shipping = order.shipping || {};
       order.shipping.trackingNumber = trackingNumber || trackingId;
@@ -143,6 +258,15 @@ class OrderService extends BaseService {
     }
 
     await order.save(); // triggers the pre('save') hook that appends to statusHistory
+
+    // Auto-restock: only fires on the transition INTO cancelled/returned,
+    // and only once — re-saving an already-cancelled order (e.g. adding a
+    // tracking number) must not add the stock back a second time.
+    const enteringRestockState = RESTOCK_STATUSES.includes(nextStatus) && previousStatus !== nextStatus;
+    if (enteringRestockState) {
+      await this._restockItems(order, userId);
+    }
+
     return this.decorate(order);
   }
 

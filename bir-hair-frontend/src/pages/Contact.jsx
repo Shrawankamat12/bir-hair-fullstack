@@ -3,12 +3,16 @@ import PageHeader from '../components/PageHeader';
 import Reveal from '../components/Reveal';
 import { contactApi } from '../lib/resources';
 import { useStore } from '../context/StoreContext';
+import { useSiteContent } from '../hooks/useStoreData';
 
 const emptyForm = { name: '', email: '', subject: '', message: '' };
 
-const MAP_QUERY = encodeURIComponent(
-  '71/7 A-18, Rama Road, Kirti Nagar Industrial Area, New Delhi - 110015'
-);
+// Same fallbacks Footer.jsx uses — shown until Website Content -> Footer
+// loads (or if the admin hasn't customised it yet).
+const DEFAULT_ADDRESS =
+  '71/7 A-18, Rama Road, Kirti Nagar Industrial Area, Opposite Kirti Nagar Metro Station, New Delhi - 110015, Delhi, India';
+const DEFAULT_PHONES = ['+91 9217411126', '+91 9999274990', '+91 9958871126'];
+const DEFAULT_EMAIL = 'birhairfactory@gmail.com';
 
 const GOLD = '#c9a15a';
 const BROWN = '#4a2c2a';
@@ -88,6 +92,13 @@ export default function Contact() {
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
   const { showError } = useStore();
+  const { siteContent: sc } = useSiteContent();
+
+  const footer = sc?.footer || {};
+  const address = footer.address || DEFAULT_ADDRESS;
+  const phones = footer.phones?.length ? footer.phones : DEFAULT_PHONES;
+  const email = footer.email || DEFAULT_EMAIL;
+  const mapQuery = encodeURIComponent(address);
 
   function field(key) {
     return { value: form[key], onChange: (e) => setForm((f) => ({ ...f, [key]: e.target.value })) };
@@ -134,17 +145,22 @@ export default function Contact() {
           {/* LEFT: info + map */}
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <InfoCard icon="📍" title="Factory Address">
-              71/7 A-18, Rama Road, Kirti Nagar Industrial Area, Opposite Kirti Nagar Metro
-              Station, New Delhi - 110015, Delhi, India
+              {address}
             </InfoCard>
 
             <InfoCard icon="📞" title="Phone &amp; Email">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <a href="tel:+919217411126" className="footer-contact-link">+91 9217411126</a>
-                <a href="tel:+919999274990" className="footer-contact-link">+91 9999274990</a>
-                <a href="tel:+919958871126" className="footer-contact-link">+91 9958871126</a>
-                <a href="mailto:birhairfactory@gmail.com" className="footer-contact-link">
-                  birhairfactory@gmail.com
+                {phones.map((phone) => (
+                  <a
+                    key={phone}
+                    href={`tel:${phone.replace(/[^\d+]/g, '')}`}
+                    className="footer-contact-link"
+                  >
+                    {phone}
+                  </a>
+                ))}
+                <a href={`mailto:${email}`} className="footer-contact-link">
+                  {email}
                 </a>
               </div>
             </InfoCard>
@@ -189,7 +205,7 @@ export default function Contact() {
             >
               <iframe
                 title="B.I.R Hair India Factory Location"
-                src={`https://www.google.com/maps?q=${MAP_QUERY}&output=embed`}
+                src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
                 width="100%"
                 height="100%"
                 style={{ border: 0, display: 'block', minHeight: 220 }}

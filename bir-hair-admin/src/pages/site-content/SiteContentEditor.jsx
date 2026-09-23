@@ -34,7 +34,7 @@ const empty = {
   faqTeaser: { eyebrow: '', title: '', description: '', ctaText: '' },
   newsletterSection: { eyebrow: '', title: '', description: '' },
   homeSections: [],
-  footer: { brandDescription: '', address: '', phone: '', email: '', socialLinks: { instagram: '', facebook: '', whatsapp: '', youtube: '', twitter: '' }, columns: [], trustBadges: [], bottomText: '' },
+  footer: { brandDescription: '', address: '', phones: [], email: '', socialLinks: { instagram: '', facebook: '', whatsapp: '', youtube: '', twitter: '' }, columns: [], trustBadges: [], bottomText: '' },
   header: { announcementEnabled: false, announcementText: '', announcementLink: '' },
 };
 
@@ -296,8 +296,10 @@ export default function SiteContentEditor() {
             <div className="max-w-3xl flex flex-col gap-6">
               <div className="grid grid-cols-2 gap-4">
                 <FormField label="Brand Description" className="col-span-2"><Textarea rows={3} value={values.footer.brandDescription} onChange={(e) => set('footer.brandDescription', e.target.value)} /></FormField>
-                <FormField label="Address"><Input value={values.footer.address} onChange={(e) => set('footer.address', e.target.value)} /></FormField>
-                <FormField label="Phone"><Input value={values.footer.phone} onChange={(e) => set('footer.phone', e.target.value)} /></FormField>
+                <FormField label="Address" className="col-span-2"><Input value={values.footer.address} onChange={(e) => set('footer.address', e.target.value)} /></FormField>
+                <FormField label="Phone Numbers" className="col-span-2" hint="Shown in the header top bar, footer and Contact page. Add one number at a time.">
+                  <TagInput value={values.footer.phones} onChange={(v) => set('footer.phones', v)} placeholder="+91 …" />
+                </FormField>
                 <FormField label="Email"><Input value={values.footer.email} onChange={(e) => set('footer.email', e.target.value)} /></FormField>
                 <FormField label="Bottom Bar Text"><Input value={values.footer.bottomText} onChange={(e) => set('footer.bottomText', e.target.value)} /></FormField>
               </div>

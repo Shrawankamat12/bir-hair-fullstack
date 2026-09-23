@@ -155,6 +155,7 @@ const orderSchema = new Schema(
       couponDiscount: { type: Number, default: 0, min: 0 },
       shippingCharge: { type: Number, default: 0, min: 0 },
       tax: { type: Number, default: 0, min: 0 },
+      taxRate: { type: Number, default: 0, min: 0 }, // % rate applied, snapshotted for the invoice
       grandTotal: { type: Number, required: true, min: 0 },
     },
 

@@ -8,21 +8,26 @@ import { rupee } from '../lib/format';
 import { resolveImageUrl } from '../lib/api';
 
 export default function Cart() {
-  const { cart, removeFromCart, updateQty, cartSubtotal, cartMrpTotal, appliedCoupon, applyCoupon, clearCoupon, showError } = useStore();
+  const {
+    cart, removeFromCart, updateQty, cartSubtotal, cartMrpTotal, cartBulkDiscount, netSubtotal,
+    appliedCoupon, applyCoupon, clearCoupon, showError, getShippingCharge, getTax, settings,
+  } = useStore();
   const [coupon, setCoupon] = useState('');
   const [applying, setApplying] = useState(false);
   const navigate = useNavigate();
 
   const discount = cartMrpTotal - cartSubtotal;
   const couponDiscount = appliedCoupon?.discount || 0;
-const shipping = cart.length === 0 ? 0 : (cartSubtotal > 15000 ? 0 : 15);
-  const total = Math.max(0, cartSubtotal - couponDiscount) + shipping;
+  const shipping = getShippingCharge('standard');
+  const taxableAmount = Math.max(0, netSubtotal - couponDiscount);
+  const tax = getTax(taxableAmount);
+  const total = taxableAmount + shipping + tax;
 
   async function handleApply() {
     if (!coupon.trim()) return;
     setApplying(true);
     try {
-      await applyCoupon(coupon.trim(), cartSubtotal);
+      await applyCoupon(coupon.trim(), netSubtotal);
     } catch (err) {
       clearCoupon();
       showError(err, 'Invalid coupon code');
@@ -202,6 +207,12 @@ const shipping = cart.length === 0 ? 0 : (cartSubtotal > 15000 ? 0 : 15);
                       <span>−{rupee(discount)}</span>
                     </div>
                   )}
+                  {cartBulkDiscount > 0 && (
+                    <div className="flex justify-between text-[#ef6c9d]">
+                      <span>Bulk Discount</span>
+                      <span>−{rupee(cartBulkDiscount)}</span>
+                    </div>
+                  )}
                   {appliedCoupon && (
                     <div className="flex justify-between text-[#ef6c9d]">
                       <span>Coupon ({appliedCoupon.code})</span>
@@ -212,6 +223,12 @@ const shipping = cart.length === 0 ? 0 : (cartSubtotal > 15000 ? 0 : 15);
                     <span>Shipping</span>
                     <span>{shipping === 0 ? 'Free' : rupee(shipping)}</span>
                   </div>
+                  {tax > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>{settings.taxLabel || 'Tax'} ({settings.taxRate}%)</span>
+                      <span>{rupee(tax)}</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4 flex items-center justify-between border-t border-black/5 pt-4">

@@ -4,6 +4,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { FiSearch, FiHeart, FiUser, FiShoppingBag, FiX, FiChevronDown, FiMenu, FiPhone, FiTruck } from 'react-icons/fi';
 import { megaMenu } from '../data/content';
 import { useStore } from '../context/StoreContext';
+import { useSiteContent } from '../hooks/useStoreData';
+
+// Same fallback numbers Footer.jsx uses when the admin hasn't set
+// Website Content -> Footer -> Phone Numbers yet.
+const DEFAULT_PHONES = ['+91 9217411126', '+91 9999274990', '+91 9958871126'];
 
 const messages = [
   'Free shipping on bulk orders',
@@ -32,7 +37,10 @@ export default function Navbar() {
   const shopItemRef = useRef(null);
   const headerRef = useRef(null);
   const { cartCount, wishlist, user } = useStore();
+  const { siteContent: sc } = useSiteContent();
   const navigate = useNavigate();
+
+  const phones = sc?.footer?.phones?.length ? sc.footer.phones : DEFAULT_PHONES;
 
   useEffect(() => {
     function publishHeight() {
@@ -92,9 +100,12 @@ export default function Navbar() {
         <div className="container nav-announce-inner nav-announce-split">
           <span className="nav-announce-left">
             <FiPhone size={16} />
-            <span>+91 9217411126</span>
-            <span className="nav-announce-sep" />
-            <span>+91 9999274990</span>
+            {phones.slice(0, 2).map((phone, i) => (
+              <span key={phone}>
+                {i > 0 && <span className="nav-announce-sep" />}
+                <span>{phone}</span>
+              </span>
+            ))}
             <span className="nav-announce-sep" />
             <FiTruck size={16} />
             <AnimatePresence mode="wait">

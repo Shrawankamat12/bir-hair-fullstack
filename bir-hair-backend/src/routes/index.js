@@ -17,6 +17,7 @@ router.use('/brands', require('./brand.routes'));
 router.use('/collections', require('./collection.routes'));
 router.use('/subcategories', require('./subcategory.routes'));
 router.use('/attributes', require('./attribute.routes'));
+router.use('/settings', require('./setting.routes'));
 
 // ---- Logged-in customer routes ----
 router.use('/cart', require('./cart.routes'));

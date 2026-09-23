@@ -125,9 +125,12 @@ const siteContentSchema = new mongoose.Schema({
   // ---------------- FOOTER ----------------
   footer: {
     brandDescription: { type: String, default: 'Blessing Indian Remy Hair Exports Pvt. Ltd. — 100% human hair extensions, wigs, closures and raw bundles, manufactured and exported from Kirti Nagar, Delhi since 2014.' },
-    address: { type: String, default: 'Kirti Nagar Industrial Area, New Delhi, 110015, India' },
-    phone: { type: String, default: '+91 98-XXXX-XXXX' },
-    email: { type: String, default: 'export@birhairindia.com' },
+    address: { type: String, default: '71/7 A-18, Rama Road, Kirti Nagar Industrial Area, Opposite Kirti Nagar Metro Station, New Delhi - 110015, Delhi, India' },
+    // NOTE: was a single `phone` string that Footer.jsx never actually read (it
+    // reads `footer.phones`, an array) — so footer/navbar/contact numbers were
+    // silently stuck on hardcoded fallbacks no matter what admins typed here.
+    phones: { type: [String], default: ['+91 9217411126', '+91 9999274990', '+91 9958871126'] },
+    email: { type: String, default: 'birhairfactory@gmail.com' },
     socialLinks: {
       instagram: { type: String, default: '' },
       facebook: { type: String, default: '' },

@@ -158,16 +158,17 @@ export const ordersApi = {
 };
 
 export const paymentsApi = {
- status: () =>
+  // { configured, paymentLink } — the Bluevine Payment Link is configured
+  // by admins in Settings -> Payment and read live from the DB.
+  status: () =>
     api.get('/payments/status'),
+};
 
-  createOrder: (orderId) =>
-    api.post('/payments/razorpay/order', {
-      orderId,
-    }),
-
-  verify: (payload) =>
-    api.post('/payments/razorpay/verify', payload),
+// Public, read-only storefront config: shipping thresholds/rates, tax
+// rate, COD availability — set by admins in Settings, read dynamically
+// instead of ever being hardcoded on the frontend.
+export const settingsApi = {
+  get: () => api.get('/settings'),
 };
 
 export const usersApi = {

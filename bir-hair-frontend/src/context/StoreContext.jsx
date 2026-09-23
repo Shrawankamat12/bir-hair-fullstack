@@ -13,6 +13,7 @@ import {
   cartApi,
   wishlistApi,
   couponsApi,
+  settingsApi,
 } from '../lib/resources';
 
 import {
@@ -20,9 +21,23 @@ import {
   normalizeVariant,
 } from '../lib/normalize';
 
+import { getBulkDiscountPerUnit } from '../lib/pricing';
+
 import { ApiError } from '../lib/api';
 
 const StoreContext = createContext(null);
+
+// Used only until the real /settings response arrives (or if it fails) —
+// matches the values Setting.js's schema itself defaults to, so behaviour
+// is identical to before this was made dynamic.
+const DEFAULT_SETTINGS = {
+  freeShippingThreshold: 15000,
+  flatShippingRate: 15,
+  expressShippingRate: 999,
+  taxRate: 0,
+  taxLabel: 'GST',
+  codEnabled: true,
+};
 
 
 /* ============================================================
@@ -68,9 +83,32 @@ export function StoreProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);
   const [toast, setToast] = useState(null);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
 
   const pendingGuestCart = useRef([]);
   const pendingGuestWishlist = useRef([]);
+
+  /* ============================================================
+     SETTINGS (shipping / tax / payment config — admin-editable)
+  ============================================================ */
+
+  useEffect(() => {
+    let cancelled = false;
+    settingsApi
+      .get()
+      .then((res) => {
+        if (!cancelled && res?.data) {
+          setSettings((prev) => ({ ...prev, ...res.data }));
+        }
+      })
+      .catch(() => {
+        // Keep DEFAULT_SETTINGS — better to fall back to the old hardcoded
+        // behaviour than to break checkout if /settings is unreachable.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
 
   /* ============================================================
@@ -685,6 +723,60 @@ export function StoreProvider({ children }) {
     );
 
 
+  /** Real per-line bulk/wholesale quantity discount — see lib/pricing.js.
+   *  This used to only exist in ProductDetail's marketing table; it now
+   *  actually reduces the amount charged, using the exact same tiers. */
+  const cartBulkDiscount =
+    useMemo(
+      () =>
+        cart.reduce(
+          (n, i) =>
+            n + getBulkDiscountPerUnit(i.price, i.qty) * i.qty,
+          0
+        ),
+      [cart]
+    );
+
+
+  /** Subtotal after the bulk-quantity discount, before coupon/shipping/tax. */
+  const netSubtotal =
+    useMemo(
+      () => Math.max(0, cartSubtotal - cartBulkDiscount),
+      [cartSubtotal, cartBulkDiscount]
+    );
+
+
+  /** Shipping charge for the given method, read from admin Settings instead
+   *  of ever being hardcoded again. Mirrors order.service.js's backend
+   *  calculation so what the customer sees matches what they're charged. */
+  const getShippingCharge =
+    useCallback(
+      (method = 'standard') => {
+        if (!cart.length) return 0;
+        if (method === 'express') {
+          return settings.expressShippingRate ?? DEFAULT_SETTINGS.expressShippingRate;
+        }
+        const threshold = settings.freeShippingThreshold ?? DEFAULT_SETTINGS.freeShippingThreshold;
+        const flatRate = settings.flatShippingRate ?? DEFAULT_SETTINGS.flatShippingRate;
+        return netSubtotal > threshold ? 0 : flatRate;
+      },
+      [cart.length, netSubtotal, settings]
+    );
+
+
+  /** Tax for a given taxable amount (post-discount, pre-shipping), read
+   *  from admin Settings. Returns 0 whenever no tax rate is configured. */
+  const getTax =
+    useCallback(
+      (taxableAmount) => {
+        const rate = settings.taxRate || 0;
+        if (!rate) return 0;
+        return Math.round((Math.max(0, taxableAmount) * rate) / 100);
+      },
+      [settings]
+    );
+
+
   const isWishlisted =
     useCallback(
       (id) =>
@@ -719,6 +811,12 @@ export function StoreProvider({ children }) {
     cartCount,
     cartSubtotal,
     cartMrpTotal,
+    cartBulkDiscount,
+    netSubtotal,
+
+    settings,
+    getShippingCharge,
+    getTax,
 
     wishlist,
     toggleWishlist,

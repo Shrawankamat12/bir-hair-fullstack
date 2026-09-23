@@ -17,6 +17,7 @@ import PageHeader from '../components/PageHeader';
 import { useStore } from '../context/StoreContext';
 import { rupee } from '../lib/format';
 import { ordersApi, paymentsApi } from '../lib/resources';
+import { getBulkDiscountPerUnit } from '../lib/pricing';
 import { resolveImageUrl } from '../lib/api';
 
 const STEPS = [
@@ -80,11 +81,16 @@ export default function Checkout() {
     cart,
     cartSubtotal,
     cartMrpTotal,
+    cartBulkDiscount,
+    netSubtotal,
     user,
     appliedCoupon,
     clearCart,
     clearCoupon,
     showError,
+    getShippingCharge,
+    getTax,
+    settings,
   } = useStore();
 
   const navigate = useNavigate();
@@ -150,14 +156,10 @@ export default function Checkout() {
   }
 
   /*
-   * Shipping calculation.
+   * Shipping calculation — reads live from admin Settings (Settings ->
+   * Shipping) via StoreContext, instead of ever being hardcoded here.
    */
-  const shippingCost =
-    shipMethod === 'express'
-      ? 999
-      : cartSubtotal > 15000
-      ? 0
-      : 15;
+  const shippingCost = getShippingCharge(shipMethod);
 
   /*
    * Coupon discount.
@@ -165,10 +167,16 @@ export default function Checkout() {
   const discountAmount = appliedCoupon?.discount || 0;
 
   /*
+   * Taxable amount = subtotal, after the bulk-quantity discount and the
+   * coupon, before shipping. Tax rate itself comes from admin Settings.
+   */
+  const taxableAmount = Math.max(0, netSubtotal - discountAmount);
+  const taxAmount = getTax(taxableAmount);
+
+  /*
    * Final payable amount.
    */
-  const total =
-    Math.max(0, cartSubtotal - discountAmount) + shippingCost;
+  const total = taxableAmount + shippingCost + taxAmount;
 
   /*
    * Update address field.
@@ -227,7 +235,15 @@ export default function Checkout() {
           // (unitPrice - discount) per unit, then multiplies by quantity
           // itself to get `total`. Sending an already-multiplied discount
           // double-applies the quantity and produces negative totals.
-          const discountPerUnit = unitPrice - item.price;
+          //
+          // Two components stack here: the product-level MRP discount
+          // (unitPrice - item.price), plus the bulk/wholesale quantity-tier
+          // discount from lib/pricing.js (same tiers shown on Product Detail
+          // and totalled in StoreContext's cartBulkDiscount) — so the price
+          // charged always matches what the customer was shown.
+          const bulkDiscountPerUnit = getBulkDiscountPerUnit(item.price, item.qty);
+          const discountPerUnit = (unitPrice - item.price) + bulkDiscountPerUnit;
+          const finalPrice = unitPrice - discountPerUnit;
 
           return {
             productId: item.id,
@@ -254,9 +270,9 @@ export default function Checkout() {
 
             discount: discountPerUnit,
 
-            finalPrice: item.price,
+            finalPrice,
 
-            total: item.price * item.qty,
+            total: finalPrice * item.qty,
           };
         }),
 
@@ -276,13 +292,14 @@ export default function Checkout() {
           subtotal: cartMrpTotal,
 
           productDiscount:
-            cartMrpTotal - cartSubtotal,
+            (cartMrpTotal - cartSubtotal) + cartBulkDiscount,
 
           couponDiscount: discountAmount,
 
           shippingCharge: shippingCost,
 
-          tax: 0,
+          tax: taxAmount,
+          taxRate: settings.taxRate || 0,
 
           grandTotal: total,
         },
@@ -869,9 +886,9 @@ export default function Checkout() {
                           }
                           title="Standard Shipping"
                           sub={`3–6 business days · ${
-                            cartSubtotal > 15000
+                            getShippingCharge('standard') === 0
                               ? 'Free'
-                              : rupee(499)
+                              : rupee(getShippingCharge('standard'))
                           }`}
                           icon={FiTruck}
                         />
@@ -888,7 +905,7 @@ export default function Checkout() {
                           }
                           title="Express Shipping"
                           sub={`1–2 business days · ${rupee(
-                            999
+                            getShippingCharge('express')
                           )}`}
                           icon={FiPackage}
                         />
@@ -1011,6 +1028,13 @@ export default function Checkout() {
                           </div>
                         ))}
 
+                        {cartBulkDiscount > 0 && (
+                          <div className="flex justify-between py-2.5 text-[#ef6c9d]">
+                            <span>Bulk Discount</span>
+                            <span>−{rupee(cartBulkDiscount)}</span>
+                          </div>
+                        )}
+
                         {appliedCoupon && (
                           <div className="flex justify-between py-2.5 text-[#ef6c9d]">
 
@@ -1050,6 +1074,13 @@ export default function Checkout() {
                           </span>
 
                         </div>
+
+                        {taxAmount > 0 && (
+                          <div className="flex justify-between py-2.5 text-gray-600">
+                            <span>{settings.taxLabel || 'Tax'} ({settings.taxRate}%)</span>
+                            <span className="font-medium text-gray-900">{rupee(taxAmount)}</span>
+                          </div>
+                        )}
 
                         <div className="flex justify-between py-2.5 text-gray-600">
 
@@ -1222,6 +1253,13 @@ export default function Checkout() {
 
                 </div>
 
+                {cartBulkDiscount > 0 && (
+                  <div className="flex justify-between text-[#ef6c9d]">
+                    <span>Bulk Discount</span>
+                    <span>−{rupee(cartBulkDiscount)}</span>
+                  </div>
+                )}
+
                 {appliedCoupon && (
                   <div className="flex justify-between text-[#ef6c9d]">
 
@@ -1256,6 +1294,13 @@ export default function Checkout() {
                   </span>
 
                 </div>
+
+                {taxAmount > 0 && (
+                  <div className="flex justify-between text-gray-500">
+                    <span>{settings.taxLabel || 'Tax'}</span>
+                    <span>{rupee(taxAmount)}</span>
+                  </div>
+                )}
 
               </div>
 

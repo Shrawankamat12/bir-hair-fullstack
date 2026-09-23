@@ -18,7 +18,7 @@ const TABS = [
 const empty = {
   storeName: '', storeEmail: '', storePhone: '', storeAddress: '', logo: '', favicon: '',
   seoTitle: '', seoDescription: '', seoKeywords: '',
-  freeShippingThreshold: '', flatShippingRate: '', shippingZones: '',
+  freeShippingThreshold: '', flatShippingRate: '', expressShippingRate: '', shippingZones: '',
   paymentGateway: 'Bluevine Payment Link', bluevinePaymentLink: '', codEnabled: true,
   taxRate: '', taxLabel: 'GST',
   smtpHost: '', smtpPort: '', smtpUser: '', smtpFrom: '',
@@ -75,6 +75,7 @@ export default function Settings() {
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Free Shipping Threshold"><Input type="number" value={values.freeShippingThreshold} onChange={(e) => set('freeShippingThreshold', e.target.value)} /></FormField>
               <FormField label="Flat Shipping Rate"><Input type="number" value={values.flatShippingRate} onChange={(e) => set('flatShippingRate', e.target.value)} /></FormField>
+              <FormField label="Express Shipping Rate" hint="Charged whenever a customer picks Express at checkout, regardless of order size"><Input type="number" value={values.expressShippingRate} onChange={(e) => set('expressShippingRate', e.target.value)} /></FormField>
               <FormField label="Shipping Zones" className="col-span-2" hint="Comma-separated list of serviceable regions"><Textarea value={values.shippingZones} onChange={(e) => set('shippingZones', e.target.value)} /></FormField>
             </div>
           )}

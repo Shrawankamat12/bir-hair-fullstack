@@ -23,7 +23,8 @@ class CouponService extends BaseService {
     return super.updateById(id, this.normalize(payload));
   }
 
-  async apply(code, subtotal, user) {
+  /** Shared validity + discount-amount calculation, used by both apply() (preview) and redeem() (commit). */
+  async _validateAndPrice(code, subtotal) {
     const coupon = await this.repository.findOne({ code: code.toUpperCase(), isActive: true });
     if (!coupon) throw new AppError('Invalid coupon code', 404);
     if (coupon.expiresAt && coupon.expiresAt < new Date()) throw new AppError('Coupon expired', 400);
@@ -36,13 +37,35 @@ class CouponService extends BaseService {
 
     let discount = coupon.type === 'percentage' ? (subtotal * coupon.value) / 100 : coupon.value;
     if (coupon.maxDiscount) discount = Math.min(discount, coupon.maxDiscount);
+    return { coupon, discount: Math.round(discount) };
+  }
+
+  /**
+   * Cart/checkout preview — validates the code and returns the discount
+   * amount WITHOUT consuming a usage slot. A coupon typed into the cart
+   * and never checked out must not burn the customer's (or anyone else's)
+   * usage limit; that only happens once an order is actually placed, via
+   * redeem() below.
+   */
+  async apply(code, subtotal) {
+    const { coupon, discount } = await this._validateAndPrice(code, subtotal);
+    return { code: coupon.code, discount };
+  }
+
+  /**
+   * Commits one usage of the coupon. Called from order.service.createOrder()
+   * right after an order is successfully placed with this coupon — this is
+   * the only place usedCount/usageHistory should change.
+   */
+  async redeem(code, subtotal, user) {
+    const { coupon, discount } = await this._validateAndPrice(code, subtotal);
 
     coupon.usedCount = (coupon.usedCount || 0) + 1;
     coupon.usageHistory = coupon.usageHistory || [];
     coupon.usageHistory.push({ user: user?._id, customerName: user?.name || 'Guest', usedAt: new Date() });
     await coupon.save();
 
-    return { code: coupon.code, discount: Math.round(discount) };
+    return { code: coupon.code, discount };
   }
 
   async listAll() {

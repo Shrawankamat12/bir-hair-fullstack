@@ -34,7 +34,7 @@ exports.getOrderAdmin = asyncHandler(async (req, res) => {
 
 // PATCH /api/v1/admin/orders/:id/status
 exports.updateOrderStatus = asyncHandler(async (req, res) => {
-  const order = await orderService.updateStatus(req.params.id, req.body);
+  const order = await orderService.updateStatus(req.params.id, req.body, req.user?._id);
   res.json({ success: true, data: order });
 });
 

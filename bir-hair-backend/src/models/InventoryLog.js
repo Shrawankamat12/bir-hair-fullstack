@@ -6,6 +6,7 @@ const inventoryLogSchema = new mongoose.Schema({
   reason: { type: String, enum: ['restock', 'correction', 'damaged', 'return', 'order'], default: 'correction' },
   stockAfter: { type: Number },
   adjustedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
 }, { timestamps: true });
 
 inventoryLogSchema.index({ product: 1, createdAt: -1 });

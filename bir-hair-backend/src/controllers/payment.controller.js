@@ -6,11 +6,13 @@ const paymentService = require('../services/payment.service');
 // gives it the link itself so the checkout / order-confirmation page can
 // send the customer there after they place an order.
 exports.getStatus = asyncHandler(async (req, res) => {
+  const [configured, paymentLink] = await Promise.all([
+    paymentService.isConfigured(),
+    paymentService.getPaymentLink(),
+  ]);
+
   res.json({
     success: true,
-    data: {
-      configured: paymentService.isConfigured,
-      paymentLink: paymentService.paymentLink,
-    },
+    data: { configured, paymentLink },
   });
 });
