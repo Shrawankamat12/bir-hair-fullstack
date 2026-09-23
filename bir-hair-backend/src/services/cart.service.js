@@ -17,8 +17,15 @@ class CartService extends BaseService {
   // array (has .id()) or a plain array (falls back to a manual find), and
   // never throws — worst case a variant just resolves to null instead of
   // crashing the whole add-to-cart request.
-  async _populateAndResolve(cart) {
+    async _populateAndResolve(cart) {
     await cart.populate('items.product');
+
+    const hasOrphans = cart.items.some((item) => !item.product);
+    if (hasOrphans) {
+      cart.items = cart.items.filter((item) => item.product);
+      await cart.save();
+    }
+
     const plain = cart.toObject();
     plain.items = plain.items.map((item, idx) => {
       let variant = null;
@@ -40,7 +47,7 @@ class CartService extends BaseService {
     });
     return plain;
   }
-
+  
   async getOrCreate(userId) {
     let cart = await this.repository.model.findOne({ user: userId });
     if (!cart) cart = await this.repository.model.create({ user: userId, items: [] });
