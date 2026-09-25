@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const authService = require('../services/auth.service');
+const generateToken = require('../utils/generateToken');
 
 const cookieOptions = {
   httpOnly: true,
@@ -101,6 +102,18 @@ exports.getMe = asyncHandler(
       success: true,
       user: req.user,
     });
+  }
+);
+
+
+exports.googleCallback = asyncHandler(
+  async (req, res) => {
+    const token = generateToken(req.user._id);
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+
+    res
+      .cookie('token', token, cookieOptions)
+      .redirect(`${clientUrl}/account`);
   }
 );
 

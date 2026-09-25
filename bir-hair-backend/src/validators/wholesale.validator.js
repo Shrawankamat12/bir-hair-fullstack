@@ -5,4 +5,5 @@ exports.submitWholesaleRules = [
   body('contactName').trim().notEmpty().withMessage('Contact name is required'),
   body('email').trim().isEmail().withMessage('Valid email is required'),
   body('phone').trim().notEmpty().withMessage('Phone is required'),
+  body('enquiryType').optional().isIn(['wholesale', 'export']).withMessage('Invalid enquiry type'),
 ];

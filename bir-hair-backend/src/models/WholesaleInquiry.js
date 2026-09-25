@@ -6,8 +6,11 @@ const wholesaleInquirySchema = new mongoose.Schema({
   email: { type: String, required: true },
   phone: { type: String, required: true },
   country: { type: String },
-  requirement: { type: String },     // free-text: products / quantity needed
+  requirement: { type: String },    
   estimatedMOQ: { type: String },
+  
+  // the business notification email so the two are never confused.
+  enquiryType: { type: String, enum: ['wholesale', 'export'], default: 'wholesale' },
   status: { type: String, enum: ['new', 'contacted', 'quoted', 'converted', 'closed'], default: 'new' },
   notes: { type: String },           // internal admin notes
 }, { timestamps: true });

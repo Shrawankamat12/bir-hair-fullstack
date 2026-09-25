@@ -5,13 +5,25 @@ const variants = {
   visible: { opacity: 1, y: 0 },
 };
 
-/**
- * Scroll-triggered reveal wrapper, now powered by Framer Motion.
- * Same public API as before (`as`, `delay`, `className`, children) so every
- * page that already renders <Reveal as="section" ...> keeps working as-is.
- */
+
+const customMotionCache = new Map();
+
+function getMotionComponent(as) {
+  if (typeof as === 'string') {
+    
+    return motion[as] || motion.div;
+  }
+
+ 
+  if (customMotionCache.has(as)) return customMotionCache.get(as);
+  const Wrapped = motion.create ? motion.create(as) : motion(as);
+  customMotionCache.set(as, Wrapped);
+  return Wrapped;
+}
+
+
 export default function Reveal({ children, delay = 0, className = '', as = 'div', ...rest }) {
-  const MotionTag = motion[as] || motion.div;
+  const MotionTag = getMotionComponent(as);
   return (
     <MotionTag
       className={className}

@@ -14,9 +14,11 @@ exports.getMyOrders = asyncHandler(async (req, res) => {
   res.json({ success: true, data: orders });
 });
 
-// GET /api/v1/orders/:id  (id can be Mongo _id or human orderNumber)
+
+
+// lives in orderService.getByIdOrOrderNumber.
 exports.getOrder = asyncHandler(async (req, res) => {
-  const order = await orderService.getByIdOrOrderNumber(req.params.id);
+  const order = await orderService.getByIdOrOrderNumber(req.params.id, req.user);
   res.json({ success: true, data: order });
 });
 
@@ -40,7 +42,7 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
 
 // POST /api/v1/admin/orders/:id/ship — creates a Shiprocket shipment + AWB for this order.
 exports.shipOrder = asyncHandler(async (req, res) => {
-  const order = await orderService.getByIdOrOrderNumber(req.params.id);
+  const order = await orderService.getByIdOrOrderNumber(req.params.id, null, { bypassOwnership: true });
 
   const { shipmentId } = await shippingService.createShipment(order);
   const { awbCode, courierName } = await shippingService.assignAwb(shipmentId);

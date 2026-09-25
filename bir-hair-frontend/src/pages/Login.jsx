@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaGoogle, FaFacebookF } from 'react-icons/fa';
 import { useStore } from '../context/StoreContext';
+import { BASE_URL } from '../lib/api';
 
 export default function Login() {
   const [mode, setMode] = useState('login');
@@ -20,6 +21,23 @@ export default function Login() {
   const { login, register, forgotPassword, resetPassword, showToast } = useStore();
 
   const redirectTo = location.state?.from || '/account';
+
+  
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const error = params.get('error');
+    if (!error) return;
+
+    const message =
+      params.get('message') ||
+      (error === 'google_not_configured'
+        ? 'Google sign-in is not available right now. Please use your email and password.'
+        : 'Google sign-in failed. Please try again.');
+
+    setFormError(decodeURIComponent(message));
+    navigate('/login', { replace: true, state: location.state });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function field(key) {
     return {
@@ -87,7 +105,7 @@ export default function Login() {
   }
 
   function loginWithGoogle() {
-    window.location.href = 'http://localhost:5000/api/v1/auth/google';
+    window.location.href = `${BASE_URL}/auth/google`;
   }
 
   function loginWithFacebook() {

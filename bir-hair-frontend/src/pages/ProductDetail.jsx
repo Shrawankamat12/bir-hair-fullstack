@@ -15,6 +15,7 @@ import { ErrorState } from '../components/StateBlocks';
 import { rupee } from '../lib/format';
 import { BULK_TIERS, getBulkUnitPrice } from '../lib/pricing';
 import { resolveImageUrl } from '../lib/api';
+import { getVideoEmbed } from '../lib/video';
 import { useProduct, useProducts, useProductReviews } from '../hooks/useStoreData';
 import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
 import { reviewsApi } from '../lib/resources';
@@ -37,6 +38,7 @@ export default function ProductDetail() {
   const [tab, setTab] = useState('Description');
   const [quickViewProduct, setQuickViewProduct] = useState(null);
   const [showVideo, setShowVideo] = useState(false);
+  const [videoBroken, setVideoBroken] = useState(false);
 
   // Admin-managed variants (length / colour / texture / weight / density) drive the picker
   // when the product has them; otherwise we fall back to the original static option lists.
@@ -60,6 +62,7 @@ export default function ProductDetail() {
       setSelColor(colorOptions[0] ?? product.color);
       setActiveImg(0);
       setShowVideo(false);
+      setVideoBroken(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product?.id]);
@@ -105,6 +108,12 @@ export default function ProductDetail() {
   const related = sameCategory.filter((p) => p.id !== product.id).slice(0, 4);
   const similar = tagMatches.filter((p) => p.id !== product.id && !related.find((r) => r.id === p.id)).slice(0, 4);
 
+  // Resolve product.video (YouTube / Vimeo / direct file URL — see the
+  // admin product form) into something actually embeddable. `videoBroken`
+  // additionally catches a "file" video whose URL 404s/fails to load at
+  // playback time, so we never leave a broken player on screen.
+  const videoEmbed = !videoBroken ? getVideoEmbed(product.video) : null;
+
   // Real product gallery first (admin-uploaded), topped up with related-product imagery only
   // if the catalog entry doesn't have enough images of its own yet.
   const ownGallery = product.gallery?.length
@@ -112,9 +121,7 @@ export default function ProductDetail() {
     : product.images || [];
   const thumbImages = [...new Set([product.image, ...ownGallery])].filter(Boolean);
   if (thumbImages.length < 2) thumbImages.push(...related.map((p) => p.image).filter(Boolean));
-  // Resolve every image (admin-uploaded paths like "/uploads/xyz.png") into a full URL
-  // the browser can actually load — this was previously missing, which is why
-  // admin-uploaded product images weren't rendering on this page.
+  
   const galleryImages = [...new Set(thumbImages)].slice(0, 6).map(resolveImageUrl);
 
   const effectivePrice = selectedVariant?.price ?? product.price;
@@ -148,9 +155,27 @@ export default function ProductDetail() {
         <div className="container pdp-grid">
           {/* ===================== GALLERY ===================== */}
           <div className="pdp-gallery">
-            {showVideo && product.video ? (
+            {showVideo && videoEmbed ? (
               <div className="pdp-video-frame overflow-hidden rounded-3xl shadow-[0_24px_60px_-32px_rgba(226,36,103,0.35)]">
-                <video src={resolveImageUrl(product.video)} controls autoPlay className="pdp-video" />
+                {videoEmbed.type === 'file' ? (
+                  <video
+                    src={resolveImageUrl(videoEmbed.embedUrl)}
+                    controls
+                    autoPlay
+                    poster={resolveImageUrl(product.image)}
+                    className="pdp-video"
+                    onError={() => { setVideoBroken(true); setShowVideo(false); }}
+                  />
+                ) : (
+                  <iframe
+                    src={`${videoEmbed.embedUrl}?autoplay=1`}
+                    title={`${product.name} video`}
+                    className="pdp-video"
+                    style={{ border: 0 }}
+                    allow="autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                  />
+                )}
                 <button className="pdp-video-close" onClick={() => setShowVideo(false)} aria-label="Back to photos"><FiX /> Photos</button>
               </div>
             ) : (
@@ -160,7 +185,7 @@ export default function ProductDetail() {
                 <ImageZoom src={galleryImages[activeImg] || resolveImageUrl(product.image)} alt={product.name} tone={product.tone} rounded={22} />
               </div>
             )}
-            {(galleryImages.length > 1 || product.video) && (
+            {(galleryImages.length > 1 || videoEmbed) && (
               <div className="pdp-thumbs mt-4 flex gap-3">
                 {galleryImages.map((img, i) => (
                   <button
@@ -175,7 +200,7 @@ export default function ProductDetail() {
                     <PhotoBlock tone={['gold', 'brown', 'beige', 'espresso'][i % 4]} ratio="1/1" rounded={10} strands={false} src={img} alt="" />
                   </button>
                 ))}
-                {product.video && (
+                {videoEmbed && (
                   <button
                     className={`pdp-thumb pdp-thumb-video relative overflow-hidden rounded-xl border-2 transition-all ${
                       showVideo ? 'border-[#ef6c9d] shadow-[0_6px_16px_rgba(226,36,103,0.25)]' : 'border-transparent opacity-80 hover:opacity-100 hover:border-[#f8b4ca]'
@@ -403,62 +428,60 @@ export default function ProductDetail() {
                   </ul>
                 )}
 
-                ```jsx
-<form
-  className="pdp-review-form mt-5 flex max-w-[480px] flex-col gap-3"
-  onSubmit={submitReview}
->
-  <span className="eyebrow">Write a Review</span>
+                <form
+                  className="pdp-review-form mt-5 flex max-w-[480px] flex-col gap-3"
+                  onSubmit={submitReview}
+                >
+                  <span className="eyebrow">Write a Review</span>
 
-  <div className="flex flex-wrap gap-2">
-    {[5, 4, 3, 2, 1].map((n) => (
-      <button
-        type="button"
-        key={n}
-        onClick={() =>
-          setReviewForm((f) => ({
-            ...f,
-            rating: n,
-          }))
-        }
-        className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-          reviewForm.rating === n
-            ? 'border-[#ef6c9d] bg-[#ef6c9d] text-white shadow-md'
-            : 'border-[#e5d5dc] bg-white text-gray-700 hover:border-[#ef6c9d] hover:bg-[#fff0f5] hover:text-[#d94f83] hover:shadow-sm'
-        }`}
-      >
-        {n}★
-      </button>
-    ))}
-  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {[5, 4, 3, 2, 1].map((n) => (
+                      <button
+                        type="button"
+                        key={n}
+                        onClick={() =>
+                          setReviewForm((f) => ({
+                            ...f,
+                            rating: n,
+                          }))
+                        }
+                        className={`rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+                          reviewForm.rating === n
+                            ? 'border-[#ef6c9d] bg-[#ef6c9d] text-white shadow-md'
+                            : 'border-[#e5d5dc] bg-white text-gray-700 hover:border-[#ef6c9d] hover:bg-[#fff0f5] hover:text-[#d94f83] hover:shadow-sm'
+                        }`}
+                      >
+                        {n}★
+                      </button>
+                    ))}
+                  </div>
 
-  <textarea
-    placeholder="Share your experience with this product…"
-    value={reviewForm.comment}
-    onChange={(e) =>
-      setReviewForm((f) => ({
-        ...f,
-        comment: e.target.value,
-      }))
-    }
-    rows={3}
-    required
-    className="w-full resize-none rounded-[10px] border border-[#ddd] p-[10px] font-inherit outline-none transition-all focus:border-[#ef6c9d] focus:ring-2 focus:ring-[#ef6c9d]/20"
-  />
+                  <textarea
+                    placeholder="Share your experience with this product…"
+                    value={reviewForm.comment}
+                    onChange={(e) =>
+                      setReviewForm((f) => ({
+                        ...f,
+                        comment: e.target.value,
+                      }))
+                    }
+                    rows={3}
+                    required
+                    className="w-full resize-none rounded-[10px] border border-[#ddd] p-[10px] font-inherit outline-none transition-all focus:border-[#ef6c9d] focus:ring-2 focus:ring-[#ef6c9d]/20"
+                  />
 
-  <button
-    type="submit"
-    disabled={submittingReview}
-    className="self-start rounded-lg bg-[#ef6c9d] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#d95788] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
-  >
-    {submittingReview
-      ? 'Submitting…'
-      : user
-        ? 'Submit Review'
-        : 'Sign in to Review'}
-  </button>
-</form>
-
+                  <button
+                    type="submit"
+                    disabled={submittingReview}
+                    className="self-start rounded-lg bg-[#ef6c9d] px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:bg-[#d95788] hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {submittingReview
+                      ? 'Submitting…'
+                      : user
+                        ? 'Submit Review'
+                        : 'Sign in to Review'}
+                  </button>
+                </form>
               </div>
             )}
           </div>

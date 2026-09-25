@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import Reveal from '../components/Reveal';
 import { exportCountries } from '../data/content';
@@ -14,7 +15,12 @@ const benefits = [
 
 const emptyForm = { businessName: '', contactName: '', email: '', phone: '', country: '', estimatedMOQ: '', requirement: '' };
 
+
 export default function Wholesale() {
+  const location = useLocation();
+  const isExport = location.pathname.startsWith('/export');
+  const enquiryType = isExport ? 'export' : 'wholesale';
+
   const [form, setForm] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [sent, setSent] = useState(false);
@@ -26,9 +32,10 @@ export default function Wholesale() {
 
   async function onSubmit(e) {
     e.preventDefault();
+    if (submitting) return; // duplicate-submission guard
     setSubmitting(true);
     try {
-      await wholesaleApi.submit(form);
+      await wholesaleApi.submit({ ...form, enquiryType });
       setSent(true);
       setForm(emptyForm);
     } catch (err) {
@@ -40,7 +47,15 @@ export default function Wholesale() {
 
   return (
     <>
-      <PageHeader crumbs={[{ label: 'Export / Wholesale' }]} title="Export &amp; Wholesale Enquiry" lede="Bulk pricing, MOQs and export documentation for salons, distributors and importers." />
+      <PageHeader
+        crumbs={[{ label: isExport ? 'Export' : 'Wholesale' }]}
+        title={isExport ? 'Export Enquiry' : 'Wholesale Enquiry'}
+        lede={
+          isExport
+            ? 'Bulk pricing, MOQs and full export documentation for international distributors and importers.'
+            : 'Bulk pricing, MOQs and trade terms for salons, retailers and domestic distributors.'
+        }
+      />
 
       <Reveal as="section" className="section">
         <div className="container wholesale-layout">
@@ -67,30 +82,45 @@ export default function Wholesale() {
               </tbody>
             </table>
 
-            <h3 style={{ margin: '30px 0 12px' }}>We Export To</h3>
-            <div className="export-countries">
-              {exportCountries.map((c) => <span className="export-chip" key={c}>{c}</span>)}
-              <span className="export-chip more">+ 38 more</span>
-            </div>
+            {isExport && (
+              <>
+                <h3 style={{ margin: '30px 0 12px' }}>We Export To</h3>
+                <div className="export-countries">
+                  {exportCountries.map((c) => <span className="export-chip" key={c}>{c}</span>)}
+                  <span className="export-chip more">+ 38 more</span>
+                </div>
+              </>
+            )}
           </div>
 
           {sent ? (
             <div className="card" style={{ padding: 30 }}>
               <h3 style={{ marginBottom: 8 }}>Thank you!</h3>
-              <p>Your enquiry has been received — our export team will respond within 24 hours.</p>
+              <p>
+                Your {isExport ? 'export' : 'wholesale'} enquiry has been received — our {isExport ? 'export' : 'wholesale'} team will respond within 24 hours.
+              </p>
               <button className="btn btn-outline on-light btn-sm" style={{ marginTop: 16 }} onClick={() => setSent(false)}>Submit Another Enquiry</button>
             </div>
           ) : (
             <form className="contact-form card" style={{ padding: 30 }} onSubmit={onSubmit}>
-              <h3 style={{ marginBottom: 6 }}>B2B Enquiry Form</h3>
-              <p style={{ fontSize: '0.85rem', color: 'rgba(74,44,42,0.55)', marginBottom: 10 }}>Our export team responds within 24 hours.</p>
+              <h3 style={{ marginBottom: 6 }}>{isExport ? 'Export Enquiry Form' : 'Wholesale Enquiry Form'}</h3>
+              <p style={{ fontSize: '0.85rem', color: 'rgba(74,44,42,0.55)', marginBottom: 10 }}>
+                Our {isExport ? 'export' : 'wholesale'} team responds within 24 hours.
+              </p>
               <input placeholder="Company Name" required {...field('businessName')} />
               <input placeholder="Contact Person" required {...field('contactName')} />
               <input type="email" placeholder="Business Email" required {...field('email')} />
               <input placeholder="Phone Number" required {...field('phone')} />
-              <input placeholder="Country" {...field('country')} />
-              <input placeholder="Estimated Order Volume (kg / pieces)" {...field('estimatedMOQ')} />
-              <textarea rows="4" placeholder="Tell us what you're looking for…" {...field('requirement')} />
+              <input placeholder={isExport ? 'Destination Country' : 'City / Country'} {...field('country')} />
+              <input
+                placeholder={isExport ? 'Quantity Required (kg / pieces)' : 'Bulk Quantity (kg / pieces)'}
+                {...field('estimatedMOQ')}
+              />
+              <textarea
+                rows="4"
+                placeholder={isExport ? 'Product requirements — types, lengths, specifications…' : "Tell us what you're looking for…"}
+                {...field('requirement')}
+              />
               <button type="submit" className="btn btn-gold" style={{ marginTop: 4 }} disabled={submitting}>
                 {submitting ? 'Submitting…' : 'Submit Enquiry'}
               </button>

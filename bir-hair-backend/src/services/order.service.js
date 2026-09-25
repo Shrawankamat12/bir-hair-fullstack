@@ -200,9 +200,34 @@ class OrderService extends BaseService {
     return this.repository.find({ user: userId }, { sort: '-createdAt' });
   }
 
-  async getByIdOrOrderNumber(idOrNumber) {
+  /**
+   * Looks up an order by its Mongo _id or human orderNumber.
+   *
+   * `requestingUser` (optional) is the logged-in user making the request, if any —
+   * passed in from the `optionalAuth` middleware so this works for both guest
+   * checkout (order placed with no `user`) and logged-in customers.
+   *
+   * Ownership rule: if the order belongs to a registered account (`order.user`
+   * is set), only that same account may view it. Guest orders (`order.user`
+   * is null) have no account to restrict to, so they remain reachable by
+   * anyone who has the order id/number itself (the same behaviour the order
+   * confirmation and guest tracking flows already rely on). Any mismatch is
+   * reported as "Order not found" rather than "forbidden" so a logged-in user
+   * probing another customer's order id can't use the response to confirm it
+   * exists.
+   *
+   * Pass `{ bypassOwnership: true }` for internal/admin call sites (e.g. the
+   * admin "ship order" action) where the caller has already been authorized
+   * by admin middleware and isn't a storefront customer.
+   */
+  async getByIdOrOrderNumber(idOrNumber, requestingUser = null, { bypassOwnership = false } = {}) {
     const order = await this.repository.findOne({ $or: [{ _id: idOrNumber }, { orderNumber: idOrNumber }] });
     if (!order) throw new AppError('Order not found', 404);
+
+    if (!bypassOwnership && order.user && (!requestingUser || String(order.user) !== String(requestingUser._id))) {
+      throw new AppError('Order not found', 404);
+    }
+
     return order;
   }
 

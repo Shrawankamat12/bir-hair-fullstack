@@ -16,6 +16,7 @@ const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 
 const Login = lazy(() => import('./pages/Login'));
 const Account = lazy(() => import('./pages/Account'));
+const OrderDetail = lazy(() => import('./pages/OrderDetail'));
 
 const Wishlist = lazy(() => import('./pages/Wishlist'));
 const Search = lazy(() => import('./pages/Search'));
@@ -137,6 +138,11 @@ export default function App() {
             <Route
               path="/account"
               element={<Account />}
+            />
+
+            <Route
+              path="/account/orders/:id"
+              element={<OrderDetail />}
             />
 
             {/* CUSTOMER */}
