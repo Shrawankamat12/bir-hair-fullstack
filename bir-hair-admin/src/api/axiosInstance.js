@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_BASE_URL ||
-    'https://dashboard.render.com/api/v1',
+ baseURL:
+  import.meta.env.VITE_API_BASE_URL ||
+  'https://bir-hair-fullstack.onrender.com/api/v1',
   withCredentials: true,
 });
 
