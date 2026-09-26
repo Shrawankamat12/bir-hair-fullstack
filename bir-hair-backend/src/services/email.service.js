@@ -72,4 +72,36 @@ async function sendBusinessNotification({ subject, html, replyTo }) {
   }
 }
 
-module.exports = { sendBusinessNotification };
+async function sendMail({ to, subject, html, replyTo }) {
+  try {
+    const config = await readMailConfig();
+    const transporter = await getTransporter(config);
+
+    if (!transporter) {
+      logger.warn(
+        'Email not sent — SMTP is not fully configured (need host, user and SMTP_PASSWORD via env, or Settings -> General in the admin panel).'
+      );
+      return false;
+    }
+
+    if (!to) {
+      logger.warn('Email not sent — no recipient email provided.');
+      return false;
+    }
+
+    await transporter.sendMail({
+      from: config.from ? `"B.I.R Hair" <${config.from}>` : config.user,
+      to,
+      replyTo,
+      subject,
+      html,
+    });
+
+    return true;
+  } catch (err) {
+    logger.error(`Failed to send email: ${err.message}`);
+    return false;
+  }
+}
+
+module.exports = { sendBusinessNotification, sendMail };

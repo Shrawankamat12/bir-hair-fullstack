@@ -6,6 +6,7 @@ const {
 } = require('../repositories');
 
 const generateToken = require('../utils/generateToken');
+const { sendMail } = require('./email.service');
 
 const {
   ADMIN_ROLES,
@@ -265,16 +266,33 @@ class AuthService {
     await user.save();
 
     /*
-     Production:
-     Send rawToken through email.
+     Send reset link through email
     */
 
-    return {
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
+
+    await sendMail({
+      to: user.email,
+      subject: 'Reset your B.I.R Hair password',
+      html: `
+        <p>Hi ${user.name || 'there'},</p>
+        <p>Click the link below to reset your password. This link expires in 15 minutes.</p>
+        <p><a href="${resetUrl}">${resetUrl}</a></p>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+      `,
+    });
+
+    const response = {
       message:
         'If this email is registered, a password reset link has been generated.',
-
-      resetToken: rawToken,
     };
+
+    if (process.env.NODE_ENV !== 'production') {
+      response.resetToken = rawToken;
+    }
+
+    return response;
   }
 
   /* -------------------------------------------------------------- */
