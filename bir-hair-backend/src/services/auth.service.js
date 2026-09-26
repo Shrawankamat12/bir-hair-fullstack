@@ -269,7 +269,8 @@ class AuthService {
      Send reset link through email
     */
 
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+   const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+    console.log('DEBUG CLIENT_URL:', process.env.CLIENT_URL);
     const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
 
     await sendMail({
