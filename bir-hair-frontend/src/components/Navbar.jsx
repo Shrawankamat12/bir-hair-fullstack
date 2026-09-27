@@ -128,13 +128,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Row 2 — logo · search · account/wishlist/cart */}
+      {/* Row 2 — logo · search · account/wishlist/cart · menu */}
       <div className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
         <div className="container navbar-inner">
-          <button className="nav-burger" aria-label="Open menu" onClick={() => setDrawerOpen(true)}>
-            <FiMenu size={24} />
-          </button>
-
           <Link
             to="/"
             className="nav-logo"
@@ -142,7 +138,6 @@ export default function Navbar() {
               position: 'relative',
               display: 'flex',
               alignItems: 'center',
-              marginLeft: 28,
             }}
           >
             {/* subtle glow behind the logo for extra shine/attractiveness */}
@@ -217,6 +212,11 @@ export default function Navbar() {
               <span>Cart</span>
             </Link>
           </div>
+
+          {/* Menu drawer trigger — now placed after Cart, at the far right */}
+          <button className="nav-burger" aria-label="Open menu" onClick={() => setDrawerOpen(true)}>
+            <FiMenu size={24} />
+          </button>
         </div>
 
         {/* Row 3 — category links */}

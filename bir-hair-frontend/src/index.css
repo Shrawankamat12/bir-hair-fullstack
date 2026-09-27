@@ -2034,6 +2034,26 @@
   .mega-menu {
     display: none;
   }
+
+  /* Logo now sits pinned to the far left. The menu (hamburger) button
+     was moved in the JSX to come after Cart, so pushing .nav-icons to
+     the right also carries the hamburger with it — giving:
+     [Logo] ......... [Account] [Wishlist] [Cart] [Menu] */
+  .navbar-inner {
+    gap: 10px;
+  }
+
+  .navbar-inner .nav-logo {
+    margin-left: 0 !important;
+  }
+
+  .navbar-inner .nav-logo img {
+    height: 46px !important;
+  }
+
+  .nav-icons {
+    margin-left: auto;
+  }
 }
 
 /* =============================================================
