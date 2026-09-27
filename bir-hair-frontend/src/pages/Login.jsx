@@ -22,7 +22,6 @@ export default function Login() {
 
   const redirectTo = location.state?.from || '/account';
 
-  
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const error = params.get('error');
@@ -38,6 +37,15 @@ export default function Login() {
     navigate('/login', { replace: true, state: location.state });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // If the URL carries a password-reset token (from the email link),
+  // switch straight into "reset" mode instead of showing the login form.
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('token')) {
+      setMode('reset');
+    }
+  }, [location.search]);
 
   function field(key) {
     return {
@@ -96,6 +104,7 @@ export default function Login() {
         setForm({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
         setMode('login');
         showToast('Password reset successfully. Please login.');
+        navigate('/login', { replace: true });
       }
     } catch (err) {
       setFormError(err?.message || 'Something went wrong');

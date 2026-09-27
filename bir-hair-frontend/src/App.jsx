@@ -15,7 +15,6 @@ const Checkout = lazy(() => import('./pages/Checkout'));
 const OrderConfirmation = lazy(() => import('./pages/OrderConfirmation'));
 
 const Login = lazy(() => import('./pages/Login'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Account = lazy(() => import('./pages/Account'));
 const OrderDetail = lazy(() => import('./pages/OrderDetail'));
 
@@ -127,6 +126,7 @@ export default function App() {
                 - Login
                 - Register
                 - Forgot Password
+                - Reset Password (via ?token= in URL)
                 - Google Login
                 - Facebook Login
             */}
@@ -135,10 +135,9 @@ export default function App() {
               element={<Login />}
             />
 
-            {/* RESET PASSWORD (from email link) */}
             <Route
               path="/reset-password"
-              element={<ResetPassword />}
+              element={<Login />}
             />
 
             {/* ACCOUNT */}
