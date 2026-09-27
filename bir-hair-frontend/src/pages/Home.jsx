@@ -488,6 +488,8 @@ export default function Home() {
   <img
     src={resolveImageUrl(hero.image) || heroModel}
     alt="Luxury hair model"
+    fetchPriority="high"
+    decoding="async"
     className="
       absolute
       bottom-0

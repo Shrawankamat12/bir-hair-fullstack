@@ -110,6 +110,8 @@ export default function Footer() {
               src="/logo-full.png"
               alt="B.I.R Hair India Factory"
               className="w-[100px] h-[100px] object-contain"
+              loading="lazy"
+              decoding="async"
             />
           </div>
 

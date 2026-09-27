@@ -249,14 +249,14 @@ export default function Navbar() {
 
                     <div
                       className={`
-                        absolute left-0 top-full z-40 ml-6 mt-3 w-[680px]
+                        absolute left-0 top-full z-40 ml-6 mt-3 w-[min(680px,90vw)]
                         rounded-2xl border border-black/5 bg-white
                         shadow-[0_25px_60px_-15px_rgba(226,36,103,0.28)]
                         transition-all duration-250 ease-out
                         ${megaOpen ? 'visible translate-y-0 opacity-100' : 'invisible -translate-y-2 opacity-0 pointer-events-none'}
                       `}
                     >
-                      <div className="grid grid-cols-4 gap-6 p-6">
+                      <div className="grid grid-cols-2 gap-6 p-6 lg:grid-cols-4">
                         {megaMenu.map((col) => (
                           <div key={col.title}>
                             <h4 className="mb-3 border-b border-[#f8b4ca]/40 pb-2 text-sm font-semibold text-gray-900">

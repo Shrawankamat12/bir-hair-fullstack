@@ -52,6 +52,8 @@ export default function CategoryCircle({ cat, variant = 'circle' }) {
               <img
                 src={imageUrl}
                 alt={cat.name}
+                loading="lazy"
+                decoding="async"
                 className="
                   h-full w-full object-cover
                   transition-transform duration-500

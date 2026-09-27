@@ -1214,6 +1214,8 @@ export default function Checkout() {
                           )}
                           alt={item.name}
                           className="h-full w-full object-cover"
+                          loading="lazy"
+                          decoding="async"
                           onError={(event) => {
                             event.currentTarget.style.display =
                               'none';

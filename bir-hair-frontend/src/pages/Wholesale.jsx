@@ -72,15 +72,17 @@ export default function Wholesale() {
             </div>
 
             <h3 style={{ marginBottom: 6 }}>Minimum Order Quantities</h3>
-            <table className="moq-table">
-              <thead><tr><th>Product</th><th>MOQ</th><th>Lead Time</th></tr></thead>
-              <tbody>
-                <tr><td>Raw Bundles</td><td>25 kg</td><td>7–10 days</td></tr>
-                <tr><td>Wefted Extensions</td><td>50 bundles</td><td>10–14 days</td></tr>
-                <tr><td>Closures &amp; Frontals</td><td>30 pieces</td><td>10–14 days</td></tr>
-                <tr><td>Wigs</td><td>20 pieces</td><td>14–18 days</td></tr>
-              </tbody>
-            </table>
+            <div className="table-scroll">
+              <table className="moq-table">
+                <thead><tr><th>Product</th><th>MOQ</th><th>Lead Time</th></tr></thead>
+                <tbody>
+                  <tr><td>Raw Bundles</td><td>25 kg</td><td>7–10 days</td></tr>
+                  <tr><td>Wefted Extensions</td><td>50 bundles</td><td>10–14 days</td></tr>
+                  <tr><td>Closures &amp; Frontals</td><td>30 pieces</td><td>10–14 days</td></tr>
+                  <tr><td>Wigs</td><td>20 pieces</td><td>14–18 days</td></tr>
+                </tbody>
+              </table>
+            </div>
 
             {isExport && (
               <>

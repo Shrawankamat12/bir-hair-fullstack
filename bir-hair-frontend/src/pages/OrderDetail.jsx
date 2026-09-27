@@ -211,7 +211,7 @@ export default function OrderDetail() {
                 <div key={i} className="flex items-center gap-4">
                   <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[#fff5f8]">
                     {item.image ? (
-                      <img src={resolveImageUrl(item.image)} alt={item.productName} className="h-full w-full object-cover" />
+                      <img src={resolveImageUrl(item.image)} alt={item.productName} className="h-full w-full object-cover" loading="lazy" decoding="async" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-[#ef6c9d]">
                         <FiPackage size={18} />
