@@ -15,6 +15,7 @@ const { apiLimiter } = require('./middleware/rateLimiter.middleware');
 const logger = require('./config/logger');
 
 const app = express();
+app.set('trust proxy', 1); 
 
 // --- Security & hardening ---
 app.use(helmetMiddleware);
