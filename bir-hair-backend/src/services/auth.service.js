@@ -214,7 +214,7 @@ class AuthService {
     };
   }
 
-  /* -------------------------------------------------------------- */
+   /* -------------------------------------------------------------- */
   /* FORGOT PASSWORD                                                 */
   /* -------------------------------------------------------------- */
 
@@ -266,13 +266,16 @@ class AuthService {
     await user.save();
 
     /*
-     Send reset link through email
+     Send reset link through email.
+     NOT awaited — email bhejne ka wait kiye bina
+     response turant client ko chala jaata hai,
+     taaki frontend button "Please wait..." pe atka na rahe.
     */
 
-   const clientUrl = process.env.CLIENT_URL ;
+    const clientUrl = process.env.CLIENT_URL;
     const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
 
-    await sendMail({
+    sendMail({
       to: user.email,
       subject: 'Reset your B.I.R Hair password',
       html: `
@@ -281,6 +284,11 @@ class AuthService {
         <p><a href="${resetUrl}">${resetUrl}</a></p>
         <p>If you didn't request this, you can safely ignore this email.</p>
       `,
+    }).catch((err) => {
+      console.error(
+        'Failed to send password reset email:',
+        err.message
+      );
     });
 
     const response = {
@@ -294,7 +302,6 @@ class AuthService {
 
     return response;
   }
-
   /* -------------------------------------------------------------- */
   /* RESET PASSWORD                                                  */
   /* -------------------------------------------------------------- */
