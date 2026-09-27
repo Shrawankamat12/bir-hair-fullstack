@@ -1,4 +1,7 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first'); 
+
 const { settingRepository } = require('../repositories');
 const logger = require('../config/logger');
 
@@ -30,7 +33,7 @@ async function getTransporter(config) {
   cachedTransporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
-    secure: config.port === 465,
+    secure: config.port === 465, // sirf port 465 SSL/secure hota hai; 587 STARTTLS use karta hai (secure: false)
     auth: { user: config.user, pass: config.pass },
   });
   cachedConfigKey = configKey;
