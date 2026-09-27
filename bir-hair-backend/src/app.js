@@ -40,6 +40,11 @@ const allowedOrigins = [
   'https://www.birhairfactory.com',
 ];
 
+// Vercel preview deployments look like:
+// https://birhairfactory-<hash>-shrawankamat12s-projects.vercel.app
+const vercelPreviewPattern =
+  /^https:\/\/birhairfactory-[a-z0-9]+-shrawankamat12s-projects\.vercel\.app$/;
+
 console.log('CORS allowedOrigins:', allowedOrigins);
 console.log('raw CLIENT_URL env:', JSON.stringify(process.env.CLIENT_URL));
 console.log('raw ADMIN_URL env:', JSON.stringify(process.env.ADMIN_URL));
@@ -48,8 +53,12 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests without an Origin header
-      // and allowed frontend origins
-      if (!origin || allowedOrigins.includes(origin)) {
+      // and allowed frontend origins (including Vercel previews)
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        vercelPreviewPattern.test(origin)
+      ) {
         callback(null, true);
       } else {
         logger.warn(`Blocked by CORS: ${origin}`);
