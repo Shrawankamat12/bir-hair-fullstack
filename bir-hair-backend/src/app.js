@@ -5,84 +5,93 @@ const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const passport = require('./config/passport');
 const routes = require('./routes');
-const { notFound, errorHandler } = require('./middleware/error.middleware');
+const {
+  notFound,
+  errorHandler,
+} = require('./middleware/error.middleware');
 const {
   helmetMiddleware,
   hppMiddleware,
-  mongoSanitize
+  mongoSanitize,
 } = require('./middleware/security.middleware');
 const { apiLimiter } = require('./middleware/rateLimiter.middleware');
 const logger = require('./config/logger');
+const path = require('path');
 
 const app = express();
-app.set('trust proxy', 1); 
 
-// --- Security & hardening ---
+app.set('trust proxy', 1);
+
+// Security
 app.use(helmetMiddleware);
 
-// --- CORS ---
+// CORS
 const parseOrigins = (value) =>
   (value || '')
     .split(',')
-    .map((o) => o.trim())
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
     .filter(Boolean);
 
 const allowedOrigins = [
   ...parseOrigins(process.env.CLIENT_URL),
   ...parseOrigins(process.env.ADMIN_URL),
 
-  // Local development
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://localhost:3000',
 
-  // Production frontend
   'https://birhairfactory.com',
   'https://www.birhairfactory.com',
 ];
 
-// Vercel preview deployments look like:
-// https://birhairfactory-<hash>-shrawankamat12s-projects.vercel.app
 const vercelPreviewPattern =
-  /^https:\/\/birhairfactory-[a-z0-9]+-shrawankamat12s-projects\.vercel\.app$/;
+  /^https:\/\/birhairfactory-[a-z0-9]+-shrawankamat12s-projects\.vercel\.app$/i;
 
-console.log('CORS allowedOrigins:', allowedOrigins);
-console.log('raw CLIENT_URL env:', JSON.stringify(process.env.CLIENT_URL));
-console.log('raw ADMIN_URL env:', JSON.stringify(process.env.ADMIN_URL));
+console.log('CORS allowed origins:', allowedOrigins);
+console.log('CLIENT_URL:', process.env.CLIENT_URL);
+console.log('ADMIN_URL:', process.env.ADMIN_URL);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests without an Origin header
-      // and allowed frontend origins (including Vercel previews)
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        vercelPreviewPattern.test(origin)
-      ) {
-        callback(null, true);
-      } else {
-        logger.warn(`Blocked by CORS: ${origin}`);
-        callback(new Error(`Not allowed by CORS: ${origin}`));
-      }
-    },
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
 
+    const normalizedOrigin = origin.replace(/\/+$/, '');
+
+    if (
+      allowedOrigins.includes(normalizedOrigin) ||
+      vercelPreviewPattern.test(normalizedOrigin)
+    ) {
+      return callback(null, true);
+    }
+
+    logger.warn(`Blocked by CORS: ${origin}`);
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Compression
 app.use(compression());
 
+// Body parsing
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(cookieParser());
 
+// Security middleware
 app.use(mongoSanitize());
 app.use(hppMiddleware);
 
 // Passport
 app.use(passport.initialize());
-
-// API rate limiter
-app.use('/api', apiLimiter);
 
 // Request logging
 app.use(
@@ -93,19 +102,21 @@ app.use(
 );
 
 // Static uploads
-const path = require('path');
 const uploadsPath = path.join(__dirname, 'uploads');
 
 console.log('Serving uploads from:', uploadsPath);
 
 app.use('/uploads', express.static(uploadsPath));
 
+// Rate limiter
+app.use('/api', apiLimiter);
+
 // API routes
 app.use('/api/v1', routes);
 
 // Health check
 app.get('/', (req, res) => {
-  res.send('B.I.R Hair API running');
+  res.status(200).send('B.I.R Hair API running');
 });
 
 // Error handlers
