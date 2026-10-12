@@ -1,7 +1,7 @@
 // Backend jab Cloudinary configured nahi hota, to image ka path "/uploads/xyz.jpg"
 // (relative) return karta hai — yeh backend server ke against resolve hona chahiye,
 // admin app ke apne origin ke against nahi. Isi wajah se image broken dikh rahi thi.
-const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1').replace(/\/api\/v1\/?$/, '');
+const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || 'https://bir-hair-fullstack.onrender.com/api/v1').replace(/\/api\/v1\/?$/, '');
 
 export function resolveMediaUrl(url) {
   if (!url) return '';
