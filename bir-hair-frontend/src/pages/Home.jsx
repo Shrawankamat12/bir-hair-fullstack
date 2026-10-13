@@ -240,7 +240,7 @@ export default function Home() {
             {hero.highlightText || "Defines"}
           </span>
 
-          <span className="text-[#17141a]"> You</span>
+          <span className="text-[#17141a]"> </span>
         </h1>
 
         {/* Subtitle */}
