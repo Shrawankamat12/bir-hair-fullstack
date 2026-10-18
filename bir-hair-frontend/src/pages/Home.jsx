@@ -737,6 +737,48 @@ export default function Home() {
         </Reveal>
       )}
 
+
+        <Reveal as="section" className="section section--tight-top">
+  <div className="container">
+    <div className="section-head">
+      <span className="eyebrow">Watch &amp; Believe</span>
+      <h2 className="section-title">Video Reviews</h2>
+    </div>
+
+    <div
+      className="flex gap-4 overflow-x-auto pb-3
+                 [&::-webkit-scrollbar]:hidden
+                 [-ms-overflow-style:none]
+                 [scrollbar-width:none]"
+    >
+      {videoImages.map((img, i) => (
+        <div
+          className="relative w-[calc((100%-80px)/6)] min-w-[150px] shrink-0"
+          key={i}
+        >
+          <PhotoBlock
+            tone="espresso"
+            ratio="9/16"
+            rounded={18}
+            strands={false}
+            src={img}
+            alt="Customer video review"
+          />
+
+          <span
+            className="absolute left-1/2 top-1/2 flex h-10 w-10
+                       -translate-x-1/2 -translate-y-1/2
+                       items-center justify-center rounded-full
+                       bg-white/90 text-gray-900 shadow-lg"
+          >
+            <FiPlay />
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+</Reveal>
+
        {/* BEST SELLERS */}
       {sectionEnabled('bestSellers') && (
         <ProductRow eyebrow="Customer Favourites" title="Best Sellers" list={bestSellers} onQuickView={setQuickViewProduct} scroller tightTop />
@@ -1076,7 +1118,7 @@ export default function Home() {
         </div>
       </Reveal>
 
-    <Reveal as="section" className="section section--tight-top">
+    {/* <Reveal as="section" className="section section--tight-top">
   <div className="container">
     <div className="section-head">
       <span className="eyebrow">Watch &amp; Believe</span>
@@ -1115,7 +1157,7 @@ export default function Home() {
       ))}
     </div>
   </div>
-</Reveal>
+</Reveal> */}
 
       {/* BLOGS */}
       {blogs.length > 0 && (
