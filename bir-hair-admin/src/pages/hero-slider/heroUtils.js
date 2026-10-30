@@ -9,7 +9,7 @@ export const SLIDE_META = {
   },
   'image-video-image': {
     label: 'Image · Video · Image',
-    help: 'A left image, a prominent center video and a right image.',
+    help: 'A large video that plays by itself (muted — visitors can turn sound on). Left and right images are optional: they appear only when you add one; leave both empty to show the video alone.',
   },
   'content-gallery': {
     label: 'Content + hair images',

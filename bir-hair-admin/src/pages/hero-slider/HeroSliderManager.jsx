@@ -66,9 +66,9 @@ function SlideBody({ slide, si, errs, patch, setMedia, addMedia, removeMedia, mo
           <div className="mt-3"><TextFields slide={slide} si={si} errs={errs} onChange={patch} /></div>
         </details>
         <div className="grid gap-4 lg:grid-cols-3">
-          <ImageItem heading="Left image" m={left} errs={mErr(0)} onChange={(v) => setMedia(0, v)} />
+          <ImageItem heading="Left image (optional)" m={left} errs={mErr(0)} onChange={(v) => setMedia(0, v)} emptyHint="Not shown" />
           <VideoItem m={video} errs={mErr(1)} onChange={(v) => setMedia(1, v)} />
-          <ImageItem heading="Right image" m={right} errs={mErr(2)} onChange={(v) => setMedia(2, v)} />
+          <ImageItem heading="Right image (optional)" m={right} errs={mErr(2)} onChange={(v) => setMedia(2, v)} emptyHint="Not shown" />
         </div>
       </div>
     );

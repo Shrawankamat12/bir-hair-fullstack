@@ -73,14 +73,14 @@ function MoveBar({ idx, count, onMove, onRemove, removeLabel = 'Remove' }) {
 }
 
 /** Image item (slide 2 left/right slot, slide 3 gallery). */
-export function ImageItem({ heading, m, errs = {}, onChange, idx, count, onMove, onRemove, showCaption = false }) {
+export function ImageItem({ heading, m, errs = {}, onChange, idx, count, onMove, onRemove, showCaption = false, emptyHint }) {
   return (
     <div className="border border-border-soft rounded-lg p-3 flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[13px] font-semibold text-ink">{heading}</span>
         <Switch checked={m.enabled !== false} onChange={(v) => onChange({ enabled: v })} label={m.enabled !== false ? 'Shown' : 'Hidden'} />
       </div>
-      <ImageInput value={m.url} onChange={(url) => onChange({ url })} title="Image" error={errs.url} />
+      <ImageInput value={m.url} onChange={(url) => onChange({ url })} title="Image" error={errs.url} emptyHint={emptyHint} />
       <div>
         <span className={label}>Alt text (describes the image for screen readers)</span>
         <Input value={m.alt || ''} onChange={(e) => onChange({ alt: e.target.value })} placeholder="e.g. Straight natural human hair bundle" />
