@@ -62,6 +62,7 @@ const groups = [
   {
     label: 'Content',
     links: [
+      { to: '/hero-slider', label: 'Hero Slider', icon: icon.banners },
       { to: '/site-content', label: 'Website Content', icon: icon.website },
       { to: '/blogs', label: 'Blog', icon: icon.blog },
       { to: '/blog-categories', label: 'Blog Categories', icon: icon.categories },

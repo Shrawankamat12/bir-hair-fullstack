@@ -1,7 +1,7 @@
 import { useAsync } from './useAsync';
 import {
   productsApi, categoriesApi, blogsApi, faqsApi, testimonialsApi, bannersApi, reviewsApi,
-  subcategoriesApi, brandsApi, collectionsApi, attributesApi, siteContentApi,
+  subcategoriesApi, brandsApi, collectionsApi, attributesApi, siteContentApi, heroSliderApi,
 } from '../lib/resources';
 import {
   normalizeProduct, normalizeCategory, normalizeBlog, normalizeFaq, normalizeTestimonial,
@@ -57,6 +57,12 @@ export function useAttributes(type) {
 export function useSiteContent() {
   const { data, loading, error } = useAsync(() => siteContentApi.get(), []);
   return { siteContent: normalizeSiteContent(data?.data), loading, error };
+}
+
+// Homepage hero carousel (5-slide config). `error` / unconfigured → caller keeps the original hero.
+export function useHeroSlider() {
+  const { data, loading, error } = useAsync(() => heroSliderApi.get(), []);
+  return { heroSlider: data?.data, loading, error };
 }
 
 export function useCategories() {

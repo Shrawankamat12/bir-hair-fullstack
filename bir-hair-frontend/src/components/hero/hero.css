@@ -1,0 +1,144 @@
+/* Hero carousel mechanics. Slide visuals use Tailwind utilities (same as the original hero). */
+.hs-root {
+  position: relative;
+  width: 100%;
+  overflow-x: clip;
+  background: #fff;
+}
+.hs-viewport {
+  overflow: hidden;
+  touch-action: pan-y; /* browser keeps vertical scroll; we handle horizontal swipes */
+  transition: height 0.45s ease;
+}
+.hs-track {
+  display: flex;
+  align-items: flex-start;
+  transition: transform 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.hs-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Arrows sit inside the hero, vertically centred on the left and right edges */
+.hs-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.78);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  color: #ed2165;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(226, 36, 103, 0.22);
+  transition: transform 0.25s, background 0.25s, color 0.25s, box-shadow 0.25s;
+}
+.hs-arrow--prev { left: 8px; }
+.hs-arrow--next { right: 8px; }
+.hs-arrow:hover {
+  background: linear-gradient(135deg, #ed2165, #d9165b);
+  color: #fff;
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 10px 28px rgba(226, 36, 103, 0.4);
+}
+.hs-arrow:focus-visible,
+.hs-dot:focus-visible,
+.hs-play:focus-visible { outline: 3px solid #ed2165; outline-offset: 3px; }
+@media (min-width: 640px) {
+  .hs-arrow { width: 44px; height: 44px; }
+  .hs-arrow--prev { left: 16px; }
+  .hs-arrow--next { right: 16px; }
+}
+@media (min-width: 1024px) {
+  .hs-arrow { width: 52px; height: 52px; font-size: 24px; }
+  .hs-arrow--prev { left: 26px; }
+  .hs-arrow--next { right: 26px; }
+}
+
+/* Dots: small glass pill inside the hero, bottom centre */
+.hs-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  transform: translateX(-50%);
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(226, 36, 103, 0.15);
+}
+.hs-dot {
+  position: relative;
+  width: 22px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.hs-dot::after {
+  content: '';
+  position: absolute;
+  inset: 9px 7px;
+  border-radius: 999px;
+  background: #f4b5cb;
+  transition: inset 0.3s, background 0.3s;
+}
+.hs-dot[aria-current='true']::after { inset: 9px 1px; background: #ed2165; }
+
+/* Play control shared by the video + Instagram cards */
+.hs-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  margin: -34px 0 0 -34px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #ed2165;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transition: transform 0.25s;
+}
+.hs-play svg { margin-left: 3px; fill: currentColor; }
+.hs-play:hover { transform: scale(1.08); }
+.hs-play::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  animation: hs-pulse 2.2s ease-out infinite;
+}
+@keyframes hs-pulse {
+  from { transform: scale(0.9); opacity: 0.9; }
+  to { transform: scale(1.25); opacity: 0; }
+}
+
+.hs-rail { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+.hs-rail::-webkit-scrollbar { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-track, .hs-viewport, .hs-arrow, .hs-dot::after, .hs-play { transition: none; }
+  .hs-play::before { animation: none; }
+}

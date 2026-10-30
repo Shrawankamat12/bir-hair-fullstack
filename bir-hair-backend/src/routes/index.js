@@ -13,6 +13,7 @@ router.use('/contact', require('./contact.routes'));
 router.use('/wholesale', require('./wholesale.routes'));
 router.use('/reviews', require('./review.routes'));
 router.use('/site-content', require('./siteContent.routes'));
+router.use('/hero-slider', require('./heroSlider.routes'));
 router.use('/brands', require('./brand.routes'));
 router.use('/collections', require('./collection.routes'));
 router.use('/subcategories', require('./subcategory.routes'));

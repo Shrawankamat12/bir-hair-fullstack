@@ -66,6 +66,12 @@ export const siteContentApi = {
   get: () => api.get('/site-content'),
 };
 
+// Public homepage hero carousel config (active slides only) — managed in
+// admin → Hero Slider. Slide 1 content still comes from siteContent.hero.
+export const heroSliderApi = {
+  get: () => api.get('/hero-slider'),
+};
+
 export const blogsApi = {
   list: (category) =>
     api.get(

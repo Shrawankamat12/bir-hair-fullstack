@@ -52,6 +52,7 @@ import NewsletterList from './pages/newsletter/NewsletterList.jsx';
 import TestimonialList from './pages/testimonials/TestimonialList.jsx';
 import FaqList from './pages/faqs/FaqList.jsx';
 import SiteContentEditor from './pages/site-content/SiteContentEditor.jsx';
+import HeroSliderManager from './pages/hero-slider/HeroSliderManager.jsx';
 
 export default function App() {
   return (
@@ -114,6 +115,7 @@ export default function App() {
           <Route path="/messages" element={<ContactMessages />} />
           <Route path="/newsletter" element={<NewsletterList />} />
           <Route path="/site-content" element={<SiteContentEditor />} />
+          <Route path="/hero-slider" element={<HeroSliderManager />} />
 
         </Route>
       </Route>

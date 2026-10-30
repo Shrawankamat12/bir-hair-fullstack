@@ -35,6 +35,7 @@ router.use('/media', require('./media.routes'));
 router.use('/reports', require('./report.routes'));
 router.use('/settings', require('./setting.routes'));
 router.use('/site-content', require('./siteContent.routes'));
+router.use('/hero-slider', require('./heroSlider.routes'));
 router.use('/upload', require('./upload.routes'));
 
 module.exports = router;

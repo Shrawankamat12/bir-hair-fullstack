@@ -1,11 +1,29 @@
 const mongoose = require('mongoose');
-
-// Singleton document (one row) — mirrors the Setting.js pattern already used
-// for store settings. This model exists so every previously hardcoded block
-// on the storefront Home page, Footer and Header can be edited from the
-// admin panel without a redeploy.
+const { HERO_SLIDE_TYPES, MEDIA_TYPES } = require('../constants/heroSlider');
 
 const linkSchema = new mongoose.Schema({ label: String, url: String }, { _id: false });
+
+
+const heroMediaSchema = new mongoose.Schema({
+  mediaType: { type: String, enum: MEDIA_TYPES, required: true },
+  url: { type: String, default: '', trim: true },
+  thumbnail: { type: String, default: '', trim: true },
+  alt: { type: String, default: '', trim: true },
+  title: { type: String, default: '', trim: true },
+  order: { type: Number, default: 0 },
+  enabled: { type: Boolean, default: true },
+}, { _id: false });
+
+const heroSlideSchema = new mongoose.Schema({
+  slideType: { type: String, enum: HERO_SLIDE_TYPES, required: true },
+  title: { type: String, default: '', trim: true },
+  description: { type: String, default: '', trim: true },
+  ctaLabel: { type: String, default: '', trim: true },
+  ctaUrl: { type: String, default: '', trim: true },
+  media: { type: [heroMediaSchema], default: [] },
+  order: { type: Number, default: 0 },
+  enabled: { type: Boolean, default: true },
+}, { _id: false });
 
 const siteContentSchema = new mongoose.Schema({
   // ---------------- HOME PAGE ----------------
@@ -26,6 +44,16 @@ const siteContentSchema = new mongoose.Schema({
     },
     ratingValue: { type: Number, default: 4.9 },
     ratingLabel: { type: String, default: '4.9 from 3,200+ buyers' },
+  },
+
+  // Homepage hero carousel config. Written ONLY through /admin/hero-slider
+  // (see services/heroSlider.service.js) — never through the generic site-content update.
+  heroSlider: {
+    enabled: { type: Boolean, default: true },
+    autoplay: { type: Boolean, default: true },
+    autoplayInterval: { type: Number, default: 6000 },
+    slides: { type: [heroSlideSchema], default: [] },
+    version: { type: Number, default: 0 },
   },
 
   whyChooseUs: {
