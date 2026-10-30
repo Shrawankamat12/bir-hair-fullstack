@@ -851,7 +851,7 @@ export default function Home() {
             <div className="section-head">
               <span className="eyebrow">Shop by Category</span>
               <h2 className="section-title">
-                Every texture, one factory floor
+                Every Texture, One Factory Floor
               </h2>
             </div>
             <div className="cat-row cat-row--grid">

@@ -86,6 +86,7 @@ function SlideBody({ slide, si, errs, patch, setMedia, addMedia, removeMedia, mo
               <ImageItem
                 key={m._k}
                 heading={`Image ${mi + 1}`}
+                showCaption
                 m={m}
                 errs={mErr(mi)}
                 idx={mi}

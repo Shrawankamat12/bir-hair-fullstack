@@ -70,13 +70,25 @@ export function HeroCta({ label, url, className = '' }) {
   );
 }
 
+/** Brand-pink accent on the last word(s) of a heading (same look as the original hero). */
+export function AccentTitle({ text }) {
+  const words = (text || '').split(' ');
+  if (words.length < 2) return text;
+  const n = words.length === 2 ? 1 : 2;
+  return (
+    <>
+      {words.slice(0, -n).join(' ')} <span className="text-[#e22667]">{words.slice(-n).join(' ')}</span>
+    </>
+  );
+}
+
 export function HeroHeading({ title, description, align = 'left', children }) {
   if (!title && !description && !children) return null;
   return (
     <div className={align === 'center' ? 'mx-auto max-w-[640px] text-center' : ''}>
       {title && (
         <h2 className="font-serif text-[34px] font-bold leading-[1.08] tracking-[-1px] text-[#17141a] sm:text-[44px] lg:text-[52px]">
-          {title}
+          <AccentTitle text={title} />
         </h2>
       )}
       {description && (

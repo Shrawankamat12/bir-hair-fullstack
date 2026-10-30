@@ -20,18 +20,18 @@ export default function HeroImageVideoImage({ slide, active, priority, onMediaAc
   );
 
   return (
-    <HeroSlideShell>
+    <HeroSlideShell className="sm:!px-5 lg:!px-8 lg:!pt-6 lg:!pb-14">
       {hasText && (
         <div className="mb-6 sm:mb-8">
           <HeroHeading title={slide.title} description={slide.description} align="center" />
         </div>
       )}
 
-      <div className="mx-auto flex w-full max-w-[1080px] flex-wrap items-center justify-center gap-3 sm:flex-nowrap sm:gap-5 lg:gap-8">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-center gap-3 sm:flex-nowrap sm:gap-5 lg:gap-6">
         {images[0] && sideImg(images[0], 0, '')}
 
         {video && (
-          <div className="order-first basis-full sm:order-none sm:basis-0 sm:grow-[1.4]">
+          <div className="order-first basis-full sm:order-none sm:basis-0 sm:grow-[1.3]">
             <HeroVideo
               media={video}
               poster={video.thumbnail}

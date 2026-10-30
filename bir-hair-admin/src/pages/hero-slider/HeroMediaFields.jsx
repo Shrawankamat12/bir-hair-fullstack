@@ -73,7 +73,7 @@ function MoveBar({ idx, count, onMove, onRemove, removeLabel = 'Remove' }) {
 }
 
 /** Image item (slide 2 left/right slot, slide 3 gallery). */
-export function ImageItem({ heading, m, errs = {}, onChange, idx, count, onMove, onRemove }) {
+export function ImageItem({ heading, m, errs = {}, onChange, idx, count, onMove, onRemove, showCaption = false }) {
   return (
     <div className="border border-border-soft rounded-lg p-3 flex flex-col gap-3">
       <div className="flex items-center justify-between gap-2">
@@ -85,6 +85,12 @@ export function ImageItem({ heading, m, errs = {}, onChange, idx, count, onMove,
         <span className={label}>Alt text (describes the image for screen readers)</span>
         <Input value={m.alt || ''} onChange={(e) => onChange({ alt: e.target.value })} placeholder="e.g. Straight natural human hair bundle" />
       </div>
+      {showCaption && (
+        <div>
+          <span className={label}>Caption shown on the photo (leave empty for none)</span>
+          <Input value={m.title || ''} onChange={(e) => onChange({ title: e.target.value })} placeholder="e.g. Raw hair bundles" />
+        </div>
+      )}
       {(onMove || onRemove) && <MoveBar idx={idx} count={count} onMove={onMove} onRemove={onRemove} />}
     </div>
   );
