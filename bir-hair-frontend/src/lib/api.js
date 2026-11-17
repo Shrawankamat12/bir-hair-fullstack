@@ -59,12 +59,17 @@ export const api = {
   }),
 };
 
-// Resolves an image path returned by the backend (e.g. "/uploads/xyz.png")
-// into a full URL. If the backend already sends a full http(s) URL, it's used as-is.
+
 export function resolveImageUrl(image) {
-  if (!image) return null;
-  if (/^https?:\/\//i.test(image)) return image;
-  return `${SERVER_ORIGIN}${image}`;
+  if (!image || typeof image !== 'string') return null;
+  const img = image.trim();
+  if (/^(https?:)?\/\//i.test(img) || img.startsWith('data:') || img.startsWith('blob:')) return img;
+  // Backend-served files: "/uploads/x.png" or "uploads/x.png"
+  if (/^\/?uploads\//i.test(img)) {
+    return `${SERVER_ORIGIN}${img.startsWith('/') ? '' : '/'}${img}`;
+  }
+  // Anything else (bundled asset paths such as /assets/x.png, /logo.png) stays as-is
+  return img;
 }
 
 export { ApiError, BASE_URL };

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { uploadImage } from '../../api/upload.api.js';
-import { Spinner } from './Feedback.jsx';
+import { Spinner, useToast } from './Feedback.jsx';
 import { resolveMediaUrl } from '../../lib/media.js';
 
 /** Single-image uploader — used for logos, banners, category images, avatars. */
@@ -8,18 +8,24 @@ export function SingleImageUpload({ value, onChange, label = 'Image', aspect = '
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(value || '');
+  const toast = useToast();
 
   const pick = async (file) => {
     if (!file) return;
+    const previous = preview;
     setPreview(URL.createObjectURL(file));
     setBusy(true);
     onUploadStateChange?.(true);
     try {
       const res = await uploadImage(file);
-      onChange(res?.url || res?.path || '');
-    } catch {
-      // upload endpoint not reachable in this environment — keep local preview so the form still works
-      onChange(preview);
+      const url = res?.url || res?.path;
+      if (!url) throw new Error('Upload returned no URL');
+      setPreview(url);
+      onChange(url);
+    } catch (err) {
+      // Never save a blob: URL — it only exists in this browser tab and breaks on the storefront.
+      setPreview(previous);
+      toast.error(err?.response?.data?.message || 'Image upload failed. Please try again.');
     } finally {
       setBusy(false);
       onUploadStateChange?.(false);
@@ -65,18 +71,21 @@ export function GalleryUpload({ images = [], onChange }) {
   const [busy, setBusy] = useState(false);
   const dragIndex = useRef(null);
   const [zoomed, setZoomed] = useState(null);
+  const toast = useToast();
 
   const addFiles = async (files) => {
     if (!files?.length) return;
     setBusy(true);
     const next = [...images];
     for (const file of Array.from(files)) {
-      const localUrl = URL.createObjectURL(file);
       try {
         const res = await uploadImage(file);
-        next.push({ url: res?.url || res?.path || localUrl, isPrimary: next.length === 0 });
-      } catch {
-        next.push({ url: localUrl, isPrimary: next.length === 0 });
+        const url = res?.url || res?.path;
+        if (!url) throw new Error('Upload returned no URL');
+        next.push({ url, isPrimary: next.length === 0 });
+      } catch (err) {
+        // Never save a blob: URL — it only exists in this browser tab and breaks on the storefront.
+        toast.error(`"${file.name}" upload failed${err?.response?.data?.message ? ': ' + err.response.data.message : ''}`);
       }
     }
     onChange(next);
@@ -101,9 +110,8 @@ export function GalleryUpload({ images = [], onChange }) {
     dragIndex.current = null;
   };
 
-  // blob: URLs (fresh local previews before upload finishes) must be used
-  // as-is; everything else (relative /uploads/... paths, or absolute URLs)
-  // goes through resolveMediaUrl.
+  // blob: URLs (fresh local previews) must be used as-is; everything else
+  // (relative /uploads/... paths, or absolute URLs) goes through resolveMediaUrl.
   const displayUrl = (url) => (url?.startsWith('blob:') ? url : resolveMediaUrl(url));
 
   return (

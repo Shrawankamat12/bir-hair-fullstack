@@ -1,3 +1,4 @@
+import { resolveImageUrl } from '../lib/api';
 import { Link } from 'react-router-dom';
 import { FiX } from 'react-icons/fi';
 import { useCompare } from '../context/CompareContext';
@@ -25,7 +26,7 @@ export default function CompareTray() {
         <div className="compare-tray-thumbs">
           {items.map((p) => (
             <span className="compare-tray-thumb" key={p.id}>
-              {p.image && <img src={p.image} alt={p.name} />}
+              {p.image && <img src={resolveImageUrl(p.image)} alt={p.name} />}
               <button onClick={() => removeCompare(p.id)} aria-label={`Remove ${p.name}`}><FiX /></button>
             </span>
           ))}
@@ -54,7 +55,7 @@ export default function CompareTray() {
                     <th></th>
                     {items.map((p) => (
                       <th key={p.id} className="compare-col-head">
-                        {p.image && <img src={p.image} alt={p.name} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 12, marginBottom: 10 }} />}
+                        {p.image && <img src={resolveImageUrl(p.image)} alt={p.name} style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 12, marginBottom: 10 }} />}
                         <Link to={`/product/${p.id}`} style={{ fontWeight: 700, color: 'var(--brown)', display: 'block' }} onClick={() => setDrawerOpen(false)}>{p.name}</Link>
                         <StarRating value={p.rating} size={12} />
                         <button className="compare-remove" onClick={() => removeCompare(p.id)}>Remove</button>

@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react';
 import PhotoBlock from './PhotoBlock';
+import { resolveImageUrl } from '../lib/api';
 
-export default function ImageZoom({ src, alt = '', tone = 'beige', rounded = 22 }) {
+export default function ImageZoom({ src: rawSrc, alt = '', tone = 'beige', rounded = 22 }) {
   const frameRef = useRef(null);
+  const src = resolveImageUrl(rawSrc) || rawSrc;
   const [active, setActive] = useState(false);
   const [tapZoom, setTapZoom] = useState(false);
   const [lens, setLens] = useState({ x: 0, y: 0 });
