@@ -3,9 +3,8 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 // Server origin without the '/api/v1' suffix — used for static file URLs like /uploads/xyz.png
 const SERVER_ORIGIN = BASE_URL.replace(/\/api\/v1\/?$/, '');
 
-// Matches backend-served file paths: "/uploads/x.png" or "uploads/x.png"
 const UPLOAD_PATH_RE = /^\/?uploads\/\S+$/i;
-// Matches absolute URLs that accidentally point at a local/dev backend: http://localhost:5000/uploads/x.png
+
 const LOCAL_UPLOAD_URL_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/uploads\/\S+)$/i;
 
 // Walks any JSON payload and turns every upload path into a full, loadable URL,
@@ -35,12 +34,7 @@ class ApiError extends Error {
   }
 }
 
-/**
- * Thin fetch wrapper for the B.I.R Hair backend.
- * - Sends cookies (the backend sets the JWT as an httpOnly cookie on login).
- * - Unwraps the `{ success, data }` envelope every endpoint returns.
- * - Throws ApiError with the backend's message on any non-2xx response.
- */
+
 async function request(path, { method = 'GET', body, params } = {}) {
   let url = `${BASE_URL}${path}`;
 
@@ -83,11 +77,7 @@ export const api = {
   }),
 };
 
-// Resolves an image path returned by the backend (e.g. "/uploads/xyz.png")
-// into a full URL.
-// - http(s)://, //cdn..., data: and blob: URLs pass through unchanged
-// - bundled assets (Vite imports / /public files like "/logo-full.png") are not touched
-//   only paths under /uploads are prefixed with the backend origin
+
 export function resolveImageUrl(image) {
   if (!image || typeof image !== 'string') return null;
   const img = image.trim();
@@ -98,7 +88,7 @@ export function resolveImageUrl(image) {
   if (/^\/?uploads\//i.test(img)) {
     return `${SERVER_ORIGIN}${img.startsWith('/') ? '' : '/'}${img}`;
   }
-  // Anything else (bundled asset paths such as /assets/x.png, /logo.png) stays as-is
+  
   return img;
 }
 
